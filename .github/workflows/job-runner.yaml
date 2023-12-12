@@ -1,4 +1,4 @@
-name: Dispatch Job
+name: dispatch job
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ on:
       prune:
         description: 'Only run the first two time steps'
         required: true
-        default: false
+        default: 'False'
       parallelism:
         description: 'Number of task managers to spin up'
         required: true
@@ -36,67 +36,51 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: convert parallelism input to integer
-      id: cast_step
-      run: |
-        INPUT_NUMBER=${{ github.event.inputs.parallelism }}
-        PARALLELISM_NUMBER=$(awk 'BEGIN{printf "%d\n", '"$INPUT_NUMBER"'}')
-        echo "::set-output name=parallelism::$PARALLELISM_NUMBER"
-
     - name: echo server
       run: |
         echo "Manually triggered workflow:  \
-        ${{ github.event.inputs.repo }} \
-        ${{ github.event.inputs.ref }} \
-        ${{ github.event.inputs.bucket }} \
-        ${{ github.event.inputs.parallelism }} \
-        ${{ github.event.inputs.prune }}"
+          ${{ github.event.inputs.repo }} \
+          ${{ github.event.inputs.ref }} \
+          ${{ github.event.inputs.bucket }} \
+          ${{ github.event.inputs.parallelism }} \
+          ${{ github.event.inputs.prune }}"
 
     - name: install deps
       run: |
         # TODO: move to requirements file
         python -m pip install --upgrade pip
-        pip install s3fs apache-beam==2.52.0 pangeo-forge-recipes>=0.9.1
+        pip install \
+          s3fs \
+          apache-beam==2.52.0 \
+          pangeo-forge-recipes>=0.10.0 \
+          pangeo-forge-runner>=0.9.1
 
-    - name: resolve bucket choices
+    - name: set up aws credentials for job runner user
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.GH_ACTIONS_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.GH_ACTIONS_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.GH_ACTIONS_AWS_REGION }}
+
+    - name: install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+    - name: update kubeconfig with cluster
       run: |
-        # TODO: finish logic
-        echo ''
+        aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
-#    - name: deploy recipes
-#      uses: pangeo-forge/deploy-recipe-action@storage-cls-args
-#      with:
-#        select_recipe_by_label: "false"
-#        pangeo_forge_runner_config: >
-#          {
-#          "Bake": {
-#              "prune": ${{ github.event.inputs.prune }}",
-#              "bakery_class": "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery",
-#              "container_image": "apache/beam_python3.10_sdk:2.52.0"
-#          },
-#          "FlinkOperatorBakery": {
-#              "parallelism": ${{ steps.cast_step.outputs.integer }},
-#              "enable_job_archiving": true,
-#              "job_manager_resources": "{\"memory\": \"1536m\", \"cpu\": 0.5}",
-#              "task_manager_resources": "{\"memory\": \"1536m\", \"cpu\": 0.5}",
-#              "flink_configuration": "{\"taskmanager.numberOfTaskSlots\": \"1\", \"taskmanager.memory.flink.size\": \"1280m\"}"
-#          },
-#          "TargetStorage": {
-#              "fsspec_class": "s3fs.S3FileSystem",
-#              "fsspec_args": {
-#                  "key": "${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}",
-#                  "secret": "${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}",
-#                  "client_kwargs": {
-#                      "region_name": "us-west-2"
-#                  },
-#                  "default_cache_type": "none",
-#                  "default_fill_cache": false,
-#                  "use_listings_cache": false
-#              },
-#              "root_path": "${{ secrets.S3_DEFAULT_BUCKET }}/{job_name}"
-#          },
-#          "InputCacheStorage": {
-#              "fsspec_class": "s3fs.S3FileSystem",
-#              "root_path": "${{ secrets.S3_DEFAULT_BUCKET }}"
-#          }
-#          }
+    - name: execute recipe on k8s cluster
+      run: |
+        pangeo-forge-runner bake \
+          --repo="${{ github.event.inputs.repo }}" \
+          --ref="${{ github.event.inputs.ref }}" \
+          -f .github/workflows/config.py
+      env:
+        PRUNE_OPTION: ${{ github.event.inputs.prune }}
+        PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
+        S3_BUCKET: ${{ github.event.inputs.bucket }}
+        S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
+        S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
