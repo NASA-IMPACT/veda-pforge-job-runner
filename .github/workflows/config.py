@@ -17,11 +17,11 @@ c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
 c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION', '1'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.5}
-c.FlinkOperatorBakery.task_manager_resources = {"memory": "1536m", "cpu": 0.5}
+c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
+c.FlinkOperatorBakery.task_manager_resources = {"memory": "1536m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": "1280m",
+    "taskmanager.memory.flink.size": "1024m",
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
