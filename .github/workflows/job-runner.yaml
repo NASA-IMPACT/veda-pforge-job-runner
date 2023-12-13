@@ -24,7 +24,7 @@ on:
         default: '1'
 
 jobs:
-  build:
+  run-job:
     runs-on: ubuntu-latest
     steps:
 
@@ -81,6 +81,7 @@ jobs:
       env:
         PRUNE_OPTION: ${{ github.event.inputs.prune }}
         PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
+        S3_BUCKET_OPTIONS_MAP: ${{ var.S3_BUCKET_OPTIONS_MAP }}
         S3_BUCKET: ${{ github.event.inputs.bucket }}
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
