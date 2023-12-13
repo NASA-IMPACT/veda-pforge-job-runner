@@ -1,8 +1,15 @@
 import os
 
-# TODO handle bucket choices here based on inputs
+bucket_choice = os.environ.get("S3_BUCKET", "default")
+bucket_options = {
+    "default": "s3://gcorradini-forge-runner-test",
+    "test": "s3://gcorradini-forge-runner-test"
+}
+s3_uri = bucket_options.get(bucket_choice)
+if not s3_uri:
+    raise ValueError(f"'S3_BUCKET_OPTIONS_MAP' did not have a key for '{bucket_choice}'. Options are {bucket_options}")
 
-BUCKET_PREFIX = os.environ.get("S3_BUCKET", "s3://gcorradini-forge-runner-test")
+BUCKET_PREFIX = s3_uri
 c.Bake.prune = bool(os.environ.get('PRUNE_OPTION', 'False'))
 c.Bake.container_image = 'apache/beam_python3.10_sdk:2.52.0'
 c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
@@ -12,9 +19,9 @@ c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
 c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.5}
 c.FlinkOperatorBakery.task_manager_resources = {"memory": "1536m", "cpu": 0.5}
-c.FlinkOperatorBakery.flink_configuration= {
-   "taskmanager.numberOfTaskSlots": "1",
-   "taskmanager.memory.flink.size": "1280m",
+c.FlinkOperatorBakery.flink_configuration = {
+    "taskmanager.numberOfTaskSlots": "1",
+    "taskmanager.memory.flink.size": "1280m",
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
@@ -22,7 +29,7 @@ c.TargetStorage.root_path = f"{BUCKET_PREFIX}/{{job_name}}/output"
 c.TargetStorage.fsspec_args = {
     "key": os.environ.get("S3_DEFAULT_AWS_ACCESS_KEY_ID"),
     "secret": os.environ.get("S3_DEFAULT_AWS_SECRET_ACCESS_KEY"),
-    "client_kwargs":{"region_name":"us-west-2"}
+    "client_kwargs": {"region_name": "us-west-2"}
 }
 
 c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
