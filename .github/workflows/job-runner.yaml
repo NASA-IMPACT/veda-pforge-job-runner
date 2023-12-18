@@ -10,6 +10,10 @@ on:
         description: 'The tag or branch to target in your recipe repo'
         required: true
         default: 'main'
+      feedstock_subdir:
+        description: 'The subdir of the feedstock directory in the repo'
+        required: true
+        default: 'feedstock'
       bucket:
         description: 'This job runner leverages s3fs.S3FileSystem for your recipe cache and output. Choices currently are: "default"'
         required: true
@@ -50,6 +54,7 @@ jobs:
         # TODO: move to requirements file
         python -m pip install --upgrade pip
         pip install \
+          fsspec \
           s3fs \
           apache-beam==2.52.0 \
           pangeo-forge-recipes>=0.10.0 \
@@ -73,14 +78,62 @@ jobs:
         aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
     - name: execute recipe on k8s cluster
+      id: executejob
+      continue-on-error: true
       run: |
-        pangeo-forge-runner bake \
-          --repo="${{ github.event.inputs.repo }}" \
-          --ref="${{ github.event.inputs.ref }}" \
-          -f .github/workflows/config.py
+        pangeo-forge-runner \
+          bake \
+          --repo=${{ github.event.inputs.repo }} \
+          --ref=${{ github.event.inputs.ref }} \
+          -f .github/workflows/config.py | while read line; do
+            if [[ "$line" ~= "flinkdeployment.flink.apache.org/*" ]]; then
+              JOB_NAME=$(echo $line | grep -oP 'flink\.apache\.org/\K[^ ]+')
+              echo "JOB_NAME=$JOB_NAME" >> $GITHUB_ENV
+            elif [[ "$line" ~= "Started Flink job as *" ]]; then
+              JOB_ID=$(echo $line | grep -oP 'Started Flink job as \K[^ ]+')
+              echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
+            elif [[ "$line" ~= "You can run*" ]]; then
+              FLINK_DASH=$(echo $line | grep -oP "'\K[^']+(?=')")
+              echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
+            fi
+          done
       env:
+        REPO: ${{ github.event.inputs.repo }}
+        REF: ${{ github.event.inputs.ref }}
+        FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
         PRUNE_OPTION: ${{ github.event.inputs.prune }}
         PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
         S3_BUCKET: ${{ github.event.inputs.bucket }}
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
+
+    - name: cleanup if "pangeo-forge-runner bake" failed
+      if: steps.excutejob.outcome == 'failure'
+      run: |
+        echo "The previous 'bake' command failed or timed out. Running cleanup logic..."
+
+        # much easier to do in bash than in Python via subprocess
+        echo "##################### OPERATOR ######################"
+        kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+        echo "##################### JOB MANAGER ######################"
+        kubectl get pod | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+        echo "##################### TASK MANAGER ######################"
+        kubectl get pod | grep "$JOB_NAME-task-manager" | head -n1 | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+
+        # delete the flinkdeployment so we don't have old failures hanging around
+        kubectl get flinkdepoyment --no-headers | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
+
+        # force GH action to show failed result
+        exit 128
+
+    - name: report running job id for user
+      run: |
+        # TODO: we also need to report historyserver URL and flink dashboard URL
+        # but this also requires us to think how we're going to have a thin
+        # layer of authentication around these services so they aren't totally public
+        echo '############ JOB NAME ################'
+        echo $JOB_NAME
+        echo '############ JOB ID ################'
+        echo $JOB_ID
+        echo '############ FLINK DASHBOARD ################'
+        echo $FLINK_DASH
