@@ -81,7 +81,7 @@ jobs:
       id: executejob
       continue-on-error: true
       run: |
-        pangeo-forge-runner \
+        stdbuf -oL pangeo-forge-runner \
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
