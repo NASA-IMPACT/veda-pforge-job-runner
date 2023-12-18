@@ -81,22 +81,26 @@ jobs:
       id: executejob
       continue-on-error: true
       run: |
-        stdbuf -oL pangeo-forge-runner \
+        pangeo-forge-runner \
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          -f .github/workflows/config.py | while read line; do
-            if [[ "$line"~="flinkdeployment.flink.apache.org/*" ]]; then
-              JOB_NAME=$(echo $line | grep -oP 'flink\.apache\.org/\K[^ ]+')
-              echo "JOB_NAME=$JOB_NAME" >> $GITHUB_ENV
-            elif [[ "$line"~="Started Flink job as *" ]]; then
-              JOB_ID=$(echo $line | grep -oP 'Started Flink job as \K[^ ]+')
-              echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
-            elif [[ "$line"~="You can run*" ]]; then
-              FLINK_DASH=$(echo $line | grep -oP "'\K[^']+(?=')")
-              echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
-            fi
-          done
+          -f .github/workflows/config.py > execute.log
+
+        # EXPORT all the valuable information from the logs
+        while read -r line; do
+          echo "$line"
+          if [[ "$line"~="flinkdeployment.flink.apache.org/*" ]]; then
+            JOB_NAME=$(echo $line | grep -oP 'flink\.apache\.org/\K[^ ]+')
+            echo "JOB_NAME=$JOB_NAME" >> $GITHUB_ENV
+          elif [[ "$line"~="Started Flink job as *" ]]; then
+            JOB_ID=$(echo $line | grep -oP 'Started Flink job as \K[^ ]+')
+            echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
+          elif [[ "$line"~="You can run*" ]]; then
+            FLINK_DASH=$(echo $line | grep -oP "'\K[^']+(?=')")
+            echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
+          fi
+        done < execute.log
       env:
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
