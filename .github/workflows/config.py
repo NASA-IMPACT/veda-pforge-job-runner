@@ -1,6 +1,6 @@
 import os
 
-bucket_choice = os.environ.get("S3_BUCKET", "default")
+bucket_choice = os.environ.get("S3_BUCKET")
 bucket_options = {
     "default": "s3://gcorradini-forge-runner-test",
     "test": "s3://gcorradini-forge-runner-test"
@@ -10,11 +10,12 @@ if not s3_uri:
     raise ValueError(f"'S3_BUCKET_OPTIONS_MAP' did not have a key for '{bucket_choice}'. Options are {bucket_options}")
 
 BUCKET_PREFIX = s3_uri
-c.Bake.prune = bool(os.environ.get('PRUNE_OPTION', 'False'))
+c.Bake.prune = bool(os.environ.get('PRUNE_OPTION'))
 c.Bake.container_image = 'apache/beam_python3.10_sdk:2.52.0'
-c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
+c.Bake.bakery_class = 'pangeo_forge_runner.bakery.flink.FlinkOperatorBakery'
+c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 
-c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION', '1'))
+c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
 c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
