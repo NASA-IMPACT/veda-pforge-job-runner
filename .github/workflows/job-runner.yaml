@@ -29,6 +29,7 @@ on:
 
 jobs:
   create-job-name:
+    runs-on: ubuntu-latest
     outputs:
       repo_name: ${{ steps.string_manipulation.outputs.result }}
     steps:
