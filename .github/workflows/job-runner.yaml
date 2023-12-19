@@ -37,7 +37,7 @@ jobs:
         id: string_manipulation
         run: |
           repo_name=$(basename -s .git "${{ github.event.inputs.repo }}")
-          echo "::set-output name=result::$repo_name"
+          echo "result=$repo_name" >> $GITHUB_OUTPUT
   run-job:
     name: runner job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: job-name
@@ -160,18 +160,17 @@ jobs:
     steps:
       - name: monitor logs of job manager
         run: |
+          # TODO: this needs to not check the logs but the historyserver status
+          # but first we need think about authentication and a reverse proxy
           echo "find job status on the job manager logs..."
-          run_status=$(kubectl get pod --no-headers | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | grep "ExecutionGraph.*Job BeamApp.*" | head -n 1)
-          while [[ -z "$run_status" ]]; do
+          while [[ -z "$(kubectl get pod --no-headers | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | grep 'ExecutionGraph.*Job BeamApp.*' | head -n 1)" ]]; do
             echo "still waiting for a status on the job manager logs..."
             sleep 1
           done
-          status=$(echo "$run_status" | grep -oP '\b\w+(?=\.$)')
-          if [[ "$status"="FAILING" ]]; then
-            echo "job failed, will dump the logs now..."
-            # force exit so we can move to next step
-            exit 128
-          elif [[ "$status"="FAILED" ]]; then
+
+          input_status=$(kubectl get pod --no-headers | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | grep 'ExecutionGraph.*Job BeamApp.*' | head -n 1)
+          status=$(echo "$input_status" | grep -oP '\b\w+(?=\.$)')
+          if [[ "$status"=="FAILING" || "$status"=="FAILED" ]]; then
             echo "job failed, will dump the logs now..."
             # force exit so we can move to next step
             exit 128
