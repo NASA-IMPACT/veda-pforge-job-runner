@@ -163,8 +163,6 @@ jobs:
     runs-on: ubuntu-latest
     name: monitor ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: [job-name, run-job]
-    timeout-minutes: 120
-    continue-on-error: true
     steps:
       - name: set up aws credentials for job runner user
         uses: aws-actions/configure-aws-credentials@v1
@@ -185,6 +183,8 @@ jobs:
 
       - name: monitor logs of job manager
         id: monitorjob
+        timeout-minutes: 120
+        continue-on-error: true
         run: |
           # TODO: this needs to not check the logs but the historyserver status
           # but first we need think about authentication and a reverse proxy
@@ -195,9 +195,13 @@ jobs:
           done
 
           input_status=$(kubectl get pod --no-headers | grep -v manager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | grep 'ExecutionGraph.*Job BeamApp.*from state RUNNING.*' | head -n 1)
+          echo "##### INPUT STATUS #####"
+          echo $input_status
           status=$(echo "$input_status" | grep -oP '\b\w+(?=\.$)')
+          echo "##### STATUS #####"
+          echo $status
           if [[ "$status"=="FAILING" || "$status"=="FAILED" ]]; then
-            echo "job failed, will dump the logs now..."
+            echo "job failed with '$status', will dump the logs now..."
             # force exit so we can move to next step
             exit 128
           fi
@@ -211,7 +215,7 @@ jobs:
           echo "##################### JOB MANAGER ######################"
           kubectl get pod | grep -v manager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
           echo "##################### TASK MANAGER ######################"
-          kubectl get pod | grep "$JOB_NAME-task-manager" | head -n1 | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+          kubectl get pod | grep "${{ needs.run-job.outputs.job_name }}-task-manager" | head -n1 | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
 
           # delete the flinkdeployment so we don't have old failures hanging around
           kubectl get flinkdepoyment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
