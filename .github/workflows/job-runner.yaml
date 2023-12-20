@@ -166,6 +166,23 @@ jobs:
     timeout-minutes: 120
     continue-on-error: true
     steps:
+      - name: set up aws credentials for job runner user
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.GH_ACTIONS_AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.GH_ACTIONS_AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.GH_ACTIONS_AWS_REGION }}
+
+      - name: install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: update kubeconfig with cluster
+        run: |
+          aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+
       - name: monitor logs of job manager
         id: monitorjob
         run: |
@@ -184,7 +201,8 @@ jobs:
             # force exit so we can move to next step
             exit 128
           fi
-      - name: cleanup if "pangeo-forge-runner bake" failed
+
+      - name: cleanup if monitor job fails
         if: steps.monitorjob.outcome == 'failure'
         run: |
           # much easier to do in bash than in Python via subprocess
