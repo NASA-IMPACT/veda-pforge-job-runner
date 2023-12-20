@@ -39,7 +39,7 @@ jobs:
           repo_name=$(basename -s .git "${{ github.event.inputs.repo }}")
           echo "result=$repo_name" >> $GITHUB_OUTPUT
   run-job:
-    name: runner job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
+    name: kickoff job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: job-name
     outputs:
       job_name: ${{ steps.report_ids.outputs.job_name }}
@@ -159,7 +159,7 @@ jobs:
 
   monitor-job:
     runs-on: ubuntu-latest
-    name: monitor ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
+    name: monitor job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: [job-name, run-job]
     steps:
       - name: set up aws credentials for job runner user
@@ -195,9 +195,11 @@ jobs:
           input_status=$(kubectl get pod --no-headers | grep -v manager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | grep 'ExecutionGraph.*Job BeamApp.*from state RUNNING.*' | head -n 1)
           echo "##### INPUT STATUS #####"
           echo $input_status
+
           status=$(echo "$input_status" | grep -oP '\b\w+(?=\.$)')
           echo "##### STATUS #####"
           echo $status
+
           if [[ "$status" == "FAILING" || "$status" == "FAILED" ]]; then
             echo "job failed with '$status', will dump the logs now..."
             # force exit so we can move to next step
