@@ -134,8 +134,6 @@ jobs:
         kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
         echo "##################### JOB MANAGER ######################"
         kubectl get pod | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
-        echo "##################### TASK MANAGER ######################"
-        kubectl get pod | grep "$JOB_NAME-task-manager" | head -n1 | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
 
         # delete the flinkdeployment so we don't have old failures hanging around
         kubectl get flinkdepoyment --no-headers | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
@@ -200,7 +198,7 @@ jobs:
           status=$(echo "$input_status" | grep -oP '\b\w+(?=\.$)')
           echo "##### STATUS #####"
           echo $status
-          if [[ "$status"=="FAILING" || "$status"=="FAILED" ]]; then
+          if [[ "$status" == "FAILING" || "$status" == "FAILED" ]]; then
             echo "job failed with '$status', will dump the logs now..."
             # force exit so we can move to next step
             exit 128
@@ -214,8 +212,6 @@ jobs:
           kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
           echo "##################### JOB MANAGER ######################"
           kubectl get pod | grep -v manager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
-          echo "##################### TASK MANAGER ######################"
-          kubectl get pod | grep "${{ needs.run-job.outputs.job_name }}-task-manager" | head -n1 | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
 
           # delete the flinkdeployment so we don't have old failures hanging around
           kubectl get flinkdepoyment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
