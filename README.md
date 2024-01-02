@@ -67,7 +67,7 @@ After getting invited to this private repo you can do the following:
          -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"true"}}'
     ```
 
-5. Head this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
+5. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
 
 6. If multiple jobs are running you can get help finding your job using the "Actor" filter
 
