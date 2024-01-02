@@ -28,7 +28,7 @@ on:
         default: '1'
 
 jobs:
-  job-name:
+  name-job:
     runs-on: ubuntu-latest
     outputs:
       repo_name: ${{ steps.string_manipulation.outputs.result }}
@@ -39,8 +39,8 @@ jobs:
           repo_name=$(basename -s .git "${{ github.event.inputs.repo }}")
           echo "result=$repo_name" >> $GITHUB_OUTPUT
   run-job:
-    name: kickoff job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
-    needs: job-name
+    name: kickoff job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
+    needs: name-job
     outputs:
       job_name: ${{ steps.report_ids.outputs.job_name }}
       job_id: ${{ steps.report_ids.outputs.job_id }}
@@ -49,6 +49,7 @@ jobs:
 
     - name: checkout repository
       uses: actions/checkout@v2
+
 
     - name: set up python 3.10
       uses: actions/setup-python@v2
@@ -159,8 +160,8 @@ jobs:
 
   monitor-job:
     runs-on: ubuntu-latest
-    name: monitor job ${{ needs.job-name.outputs.repo_name }}@${{ github.event.inputs.ref }}
-    needs: [job-name, run-job]
+    name: monitor job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
+    needs: [name-job, run-job]
     steps:
       - name: set up aws credentials for job runner user
         uses: aws-actions/configure-aws-credentials@v1
