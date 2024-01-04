@@ -103,7 +103,7 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          -f .github/workflows/config.py
+          -f .github/workflows/config.py 2>&1 | tee execute.log
 
         # export all the valuable information from the logs
         JOB_NAME=$(cat execute.log | grep -oP 'flinkdeployment\.flink\.apache\.org/\K[^ ]+' | head -n1)
@@ -136,7 +136,7 @@ jobs:
         kubectl get pod | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
 
         # delete the flinkdeployment so we don't have old failures hanging around
-        kubectl get flinkdepoyment --no-headers | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
+        kubectl get flinkdeployment --no-headers | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
 
         # force GH action to show failed result
         exit 128
