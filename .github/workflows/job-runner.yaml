@@ -125,7 +125,7 @@ jobs:
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
-      if: steps.excutejob.outcome == 'failure'
+      if: steps.executejob.outcome == 'failure'
       run: |
         echo "The previous 'bake' command failed or timed out. Running cleanup logic..."
 
