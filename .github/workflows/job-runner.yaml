@@ -217,7 +217,7 @@ jobs:
           kubectl get pod | grep -v manager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
 
           # delete the flinkdeployment so we don't have old failures hanging around
-          kubectl get flinkdepoyment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
+          kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
 
           # force GH action to show failed result
           exit 128
