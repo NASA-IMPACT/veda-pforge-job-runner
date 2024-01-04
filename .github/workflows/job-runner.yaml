@@ -72,9 +72,11 @@ jobs:
         pip install \
           fsspec \
           s3fs \
+          boto3 \
           apache-beam==2.52.0 \
           pangeo-forge-recipes>=0.10.0 \
-          pangeo-forge-runner>=0.9.1
+          pangeo-forge-runner>=0.9.1 \
+          python-cmr==0.9.0
 
     - name: set up aws credentials for job runner user
       uses: aws-actions/configure-aws-credentials@v2
