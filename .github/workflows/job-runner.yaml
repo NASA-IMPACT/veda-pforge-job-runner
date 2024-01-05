@@ -99,6 +99,7 @@ jobs:
       id: executejob
       continue-on-error: true
       run: |
+        timeout 150 \
         pangeo-forge-runner \
           bake \
           --repo=${{ github.event.inputs.repo }} \
