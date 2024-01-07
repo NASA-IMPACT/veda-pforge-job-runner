@@ -32,6 +32,7 @@ c.FlinkOperatorBakery.flink_configuration = {
     # Task Off-Heap Memory (512.000mb set below)
     # has to be below configured
     # Total Flink Memory (2.816gb set above)
+    # so doing something like this should let us understand what to tweak
     # Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128) / 2
     "taskmanager.memory.task.heap.size": "512m",
     "taskmanager.memory.task.off-heap.size": "512m"
