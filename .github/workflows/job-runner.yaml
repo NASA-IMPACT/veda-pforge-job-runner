@@ -234,7 +234,8 @@ jobs:
             NOCOLOR='\033[0m' # To reset the color
             echo "###################################################"
             echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a JVM OOM error in the task manager logs...${NOCOLOR}"
-            echo "$jvm_error"
+            jvm_error_log_dump=$(cat /tmp/taskmanager.log | grep -a20 "java.lang.OutOfMemoryError")
+            echo "$jvm_error_log_dump"
           fi
 
           # force GH action to show failed result
