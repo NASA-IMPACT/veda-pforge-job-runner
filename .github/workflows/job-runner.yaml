@@ -226,8 +226,8 @@ jobs:
 
           # grok if this is a JVM OOM error
           jvm_error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
-          if [[ -z "$jvm_error" ]]; then
-            echo "there seems to be a JVM OOM error.."
+          if [[ "$jvm_error" ]]; then
+            echo "there seems to be a JVM OOM error task manager logs..."
             echo "$jvm_error"
           fi
 
