@@ -22,9 +22,18 @@ c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
 c.FlinkOperatorBakery.task_manager_resources = {"memory": "3328m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": "1792m",
-    "taskmanager.memory.task.heap.size": "512m",
-    "taskmanager.memory.task.off-heap.size": "512m"
+    "taskmanager.memory.flink.size": "2816m",
+    # sum of configured:
+    # Framework Heap Memory (128.000mb default) +
+    # Framework Off-Heap Memory (128.000mb default) +
+    # Managed Memory (defaults to fraction 0.4 of total flink memory)
+    # Task Heap Memory (512.000mb set below) +
+    # Task Off-Heap Memory (512.000mb set below) +
+    # has to be below configured
+    # Total Flink Memory (2.816gb set above)
+    # Total Flink Memory - ((0.4 * Total Flink Memory)+128+128) / 2
+    "taskmanager.memory.task.heap.size": "716m",
+    "taskmanager.memory.task.off-heap.size": "716m"
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
