@@ -10,7 +10,7 @@ if not s3_uri:
     raise ValueError(f"'S3_BUCKET_OPTIONS_MAP' did not have a key for '{bucket_choice}'. Options are {bucket_options}")
 
 BUCKET_PREFIX = s3_uri
-c.Bake.prune = bool(os.environ.get('PRUNE_OPTION'))
+c.Bake.prune = bool(int(os.environ.get('PRUNE_OPTION')))
 c.Bake.container_image = 'apache/beam_python3.10_sdk:2.52.0'
 c.Bake.bakery_class = 'pangeo_forge_runner.bakery.flink.FlinkOperatorBakery'
 c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")

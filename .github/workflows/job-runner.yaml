@@ -21,7 +21,7 @@ on:
       prune:
         description: 'Only run the first two time steps'
         required: true
-        default: 'False'
+        default: '0'
       parallelism:
         description: 'Number of task managers to spin up'
         required: true
