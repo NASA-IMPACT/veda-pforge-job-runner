@@ -218,7 +218,9 @@ jobs:
           echo "##################### JOB MANAGER ######################"
           kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
           echo "##################### TASK MANAGER ######################"
-          kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
+          # depending on the `inputs.parallism` we can more than one taskmanager so grab the first one
+          # TODO: loop through them all and dump the logs
+          kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
           cat /tmp/taskmanager.log
 
           # delete the flinkdeployment so we don't have old failures hanging around
