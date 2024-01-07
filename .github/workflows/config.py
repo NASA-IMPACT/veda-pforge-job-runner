@@ -23,7 +23,7 @@ c.FlinkOperatorBakery.task_manager_resources = {"memory": "3072m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
     "taskmanager.memory.flink.size": "2048m",
-    "jobmanager.memory.off-heap.size": "512m"
+    "taskmanager.memory.task.off-heap.size": "512m"
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"

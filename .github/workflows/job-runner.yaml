@@ -218,10 +218,18 @@ jobs:
           echo "##################### JOB MANAGER ######################"
           kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
           echo "##################### TASK MANAGER ######################"
-          kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} -c flink-main-container | tail -n 1000
+          kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
+          cat /tmp/taskmanager.log
 
           # delete the flinkdeployment so we don't have old failures hanging around
           kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
+
+          # grok if this is a JVM OOM error
+          jvm_error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
+          if [[ -z "$jvm_error" ]]; then
+            echo "there seems to be a JVM OOM error.."
+            echo "$jvm_error"
+          fi
 
           # force GH action to show failed result
           exit 128
