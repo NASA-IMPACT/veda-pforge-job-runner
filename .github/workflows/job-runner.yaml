@@ -229,7 +229,11 @@ jobs:
           # grok if this is a JVM OOM error
           jvm_error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
           if [[ "$jvm_error" ]]; then
-            echo "there seems to be a JVM OOM error task manager logs..."
+            RED='\033[0;31m'
+            GREEN='\033[0;32m'
+            NOCOLOR='\033[0m' # To reset the color
+            echo "###################################################"
+            echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a JVM OOM error in the task manager logs...${NOCOLOR}"
             echo "$jvm_error"
           fi
 
