@@ -19,11 +19,12 @@ c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
 c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
-c.FlinkOperatorBakery.task_manager_resources = {"memory": "3584m", "cpu": 0.3}
+c.FlinkOperatorBakery.task_manager_resources = {"memory": "3328m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": "2560m",
-    "taskmanager.memory.task.off-heap.size": "512m"
+    "taskmanager.memory.flink.size": "2816m",
+    "taskmanager.memory.task.heap.size": "256m",
+    "taskmanager.memory.task.off-heap.size": "256m"
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
