@@ -19,10 +19,10 @@ c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
 c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
-c.FlinkOperatorBakery.task_manager_resources = {"memory": "3328m", "cpu": 0.3}
+c.FlinkOperatorBakery.task_manager_resources = {"memory": "3072m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": "2816m",
+    "taskmanager.memory.flink.size": "2560m",
     # sum of configured:
     # Framework Heap Memory (128.000mb default) +
     # Framework Off-Heap Memory (128.000mb default) +
@@ -32,7 +32,7 @@ c.FlinkOperatorBakery.flink_configuration = {
     # Task Off-Heap Memory (512.000mb set below)
     # has to be below configured
     # Total Flink Memory (2.816gb set above)
-    # so doing something like this should let us understand what to tweak
+    # so this quick math will give us equal amounts of heap/off-heap
     # Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128) / 2
     "taskmanager.memory.task.heap.size": "512m",
     "taskmanager.memory.task.off-heap.size": "512m"
