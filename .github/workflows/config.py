@@ -18,7 +18,7 @@ c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1024m", "cpu": 0.3}
+c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
 c.FlinkOperatorBakery.task_manager_resources = {"memory": "10240m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
