@@ -84,4 +84,4 @@ After getting invited to this private repo you can do the following:
 ![](docs/img/xmonitor_job.png)
 
 
-9. Continue to come back to the "monitor" subjob to see if it passes or fails. In the future there will be some mild hueristics in place that should tell you why it passes or fails based on what it sniffs in the logs. For now it sniffs for the correct job status within a time limit of two hours
+9. Continue to come back to the "monitor" subjob to see if it passes or fails. In the future there will be some mild heuristics in place that should tell you why it fails based on what it sniffs in the logs. For now it sniffs for the correct job status within a time limit of two hours
