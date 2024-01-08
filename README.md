@@ -41,7 +41,7 @@ After getting invited to this private repo you can do the following:
           prune:
             description: 'Only run the first two time steps'
             required: true
-            default: 'False'
+            default: '0'
           parallelism:
             description: 'Number of task managers to spin up'
             required: true
@@ -66,7 +66,7 @@ After getting invited to this private repo you can do the following:
          -H "X-GitHub-Api-Version: 2022-11-28" \
          -H "Authorization: token blahblah" \
          https://api.github.com/repos/NASA-IMPACT/veda-pforge-job-runner/actions/workflows/job-runner.yaml/dispatches \
-         -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"true"}}'
+         -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"1"}}'
     ```
 
 5. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)

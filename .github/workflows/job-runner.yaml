@@ -216,7 +216,8 @@ jobs:
           echo "##################### OPERATOR ######################"
           kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
           echo "##################### JOB MANAGER ######################"
-          kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+          kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/jobmanager.log
+          cat /tmp/jobmanager.log
           echo "##################### TASK MANAGER ######################"
           # depending on the `inputs.parallism` we can more than one taskmanager so grab the first one
           # TODO: loop through them all and dump the logs
@@ -226,17 +227,33 @@ jobs:
           # delete the flinkdeployment so we don't have old failures hanging around
           kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
 
-          # grok if this is a JVM OOM error
-          jvm_error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
-          if [[ "$jvm_error" ]]; then
-            RED='\033[0;31m'
-            GREEN='\033[0;32m'
-            NOCOLOR='\033[0m' # To reset the color
+          #################################################################
+          # provide feedback about OOM errors where we've seen them before
+          #################################################################
+          RED='\033[0;31m'
+          GREEN='\033[0;32m'
+          NOCOLOR='\033[0m' # To reset the color
+
+          # grok if taskmanager produced a JVM OOM error
+          error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
+          if [[ "$error" ]]; then
             echo "###################################################"
-            echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a JVM OOM error in the task manager logs...${NOCOLOR}"
-            jvm_error_log_dump=$(cat /tmp/taskmanager.log | grep -a20 "java.lang.OutOfMemoryError")
-            echo "$jvm_error_log_dump"
+            echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a JVM OOM error in the taskmanager logs...${NOCOLOR}"
+            dump_error=$(cat /tmp/taskmanager.log | grep -a20 "java.lang.OutOfMemoryError")
+            echo "$dump_error"
           fi
+
+          # grok if this was OOM killed
+          error=$(cat /tmp/jobmanager.log | grep "reason=OOMKilled")
+          if [[ "$error" ]]; then
+            echo "###################################################"
+            echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be an OOMKilled error in the jobmanager logs...${NOCOLOR}"
+            dump_error=$(cat /tmp/jobmanager.log | grep -a20 "reason=OOMKilled")
+            echo "$dump_error"
+          fi
+          #################################################################
+          # end
+          #################################################################
 
           # force GH action to show failed result
           exit 128
