@@ -18,11 +18,11 @@ c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 c.FlinkOperatorBakery.parallelism = int(os.environ.get('PARALLELISM_OPTION'))
 c.FlinkOperatorBakery.enable_job_archiving = True
 c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
-c.FlinkOperatorBakery.task_manager_resources = {"memory": "13312m", "cpu": 0.3}
+c.FlinkOperatorBakery.job_manager_resources = {"memory": "1024m", "cpu": 0.3}
+c.FlinkOperatorBakery.task_manager_resources = {"memory": "12288m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": "12800m",
+    "taskmanager.memory.flink.size": "11776m",
     # illustration of Flink memory model: https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#overview
 
     # sum of configured:
@@ -36,7 +36,7 @@ c.FlinkOperatorBakery.flink_configuration = {
     # Total Flink Memory (set above)
     # so this quick math will give us equal amounts of heap/off-heap
     # (Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128)) / 2
-    "taskmanager.memory.task.heap.size": "5376m",
+    "taskmanager.memory.task.heap.size": "4863m",
     "taskmanager.memory.framework.heap.size": "512m",
     "taskmanager.memory.task.off-heap.size": "256m",
     "taskmanager.memory.framework.off-heap.size": "256m",
