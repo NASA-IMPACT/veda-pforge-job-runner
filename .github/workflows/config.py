@@ -23,6 +23,7 @@ c.FlinkOperatorBakery.task_manager_resources = {"memory": "7168m", "cpu": 0.3}
 c.FlinkOperatorBakery.flink_configuration = {
     "taskmanager.numberOfTaskSlots": "1",
     "taskmanager.memory.flink.size": "6656m",
+    # illustration of Flink memory model: https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#overview
     # sum of configured:
     # Framework Heap Memory (128.000mb default) +
     # Framework Off-Heap Memory (128.000mb default) +
