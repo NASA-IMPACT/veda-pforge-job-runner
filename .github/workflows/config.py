@@ -35,10 +35,10 @@ c.FlinkOperatorBakery.flink_configuration = {
     # Total Flink Memory (set above)
     # so this quick math will give us equal amounts of heap/off-heap
     # (Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128)) / 2
-    "taskmanager.memory.task.heap.size": "2048m",
-    "taskmanager.memory.framework.heap.size": "2048m",
+    "taskmanager.memory.task.heap.size": "5120m",
+    "taskmanager.memory.framework.heap.size": "512m",
+    "taskmanager.memory.task.off-heap.size": "384m",
     "taskmanager.memory.framework.off-heap.size": "384m",
-    "taskmanager.memory.task.off-heap.size": "384m"
 }
 
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
