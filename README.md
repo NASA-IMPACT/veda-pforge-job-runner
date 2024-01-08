@@ -14,7 +14,7 @@ After getting invited to this private repo you can do the following:
     ```bash
     # NOTE that any arguments for your recipe run will be added to the `inputs` hash
     # The first-level `ref` below refers to which branch in this GH repositry we want to run things against 
-    '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"true"}}'
+    '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"1"}}'
     ```
    
 3. Note that `.github/workflows/job-runner.yaml` in this repository describes the allowed inputs and defaults. Currently the only non-defaulted input is `repo` which is required. In the future we'll allow you to pass different `bucket` arguments but best to use the default for now
