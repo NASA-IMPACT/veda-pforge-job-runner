@@ -237,19 +237,21 @@ jobs:
           # grok if taskmanager produced a JVM OOM error
           error=$(cat /tmp/taskmanager.log | grep "java.lang.OutOfMemoryError")
           if [[ "$error" ]]; then
-            echo "###################################################"
+            echo "${RED}################### ERROR ###########################${NOCOLOR}"
             echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a JVM OOM error in the taskmanager logs...${NOCOLOR}"
             dump_error=$(cat /tmp/taskmanager.log | grep -a20 "java.lang.OutOfMemoryError")
             echo "$dump_error"
+            echo "${RED}################### END ERROR ###########################${NOCOLOR}"
           fi
 
           # grok if this was OOM killed
           error=$(cat /tmp/jobmanager.log | grep "reason=OOMKilled")
           if [[ "$error" ]]; then
-            echo "###################################################"
+            echo "${RED}################### ERROR ###########################${NOCOLOR}"
             echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be an OOMKilled error in the jobmanager logs...${NOCOLOR}"
             dump_error=$(cat /tmp/jobmanager.log | grep -a20 "reason=OOMKilled")
             echo "$dump_error"
+            echo "${RED}################### END ERROR ###########################${NOCOLOR}"
           fi
           #################################################################
           # end
