@@ -157,9 +157,9 @@ jobs:
          echo "$dump_error"
          echo -e "${RED}################### END ERROR ###########################${NOCOLOR}"
         fi
-       #################################################################
-       # end
-       #################################################################
+        #################################################################
+        # end
+        #################################################################
 
         # delete the flinkdeployment so we don't have old failures hanging around
         kubectl get flinkdeployment --no-headers | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
