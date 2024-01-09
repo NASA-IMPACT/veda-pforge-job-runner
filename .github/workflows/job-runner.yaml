@@ -39,7 +39,7 @@ jobs:
           repo_name=$(basename -s .git "${{ github.event.inputs.repo }}")
           echo "result=$repo_name" >> $GITHUB_OUTPUT
   run-job:
-    if: github.actor == 'ranchodeluxe' || github.actor == 'abarciauskas-bgse' || github.action == 'norlandrhagen' || github.action == 'sharkinsspatial'
+    if: github.actor == 'ranchodeluxe' || github.actor == 'abarciauskas-bgse' || github.actor == 'norlandrhagen' || github.actor == 'sharkinsspatial'
     name: kickoff job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: name-job
     outputs:
