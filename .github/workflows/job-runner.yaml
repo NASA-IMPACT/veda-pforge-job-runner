@@ -134,9 +134,31 @@ jobs:
 
         # much easier to do in bash than in Python via subprocess
         echo "##################### OPERATOR ######################"
-        kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+        kubectl get pod | grep operator | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/operator.log
+        cat /tmp/operator.log
         echo "##################### JOB MANAGER ######################"
-        kubectl get pod | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} | tail -n 1000
+        kubectl get pod | grep -v manager | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/jobmanager.log
+        cat /tmp/jobmanager.log
+
+        #################################################################
+        # provide feedback about OOM errors where we've seen them before
+        #################################################################
+        RED='\033[0;31m'
+        GREEN='\033[0;32m'
+        NOCOLOR='\033[0m' # To reset the color
+
+        # grok if operator logs produced a error that makes things unable to schedule
+        error=$(cat /tmp/operator.log | grep "ReconciliationException")
+        if [[ "$error" ]]; then
+         echo -e "${RED}################### ERROR ###########################${NOCOLOR}"
+         echo -e "${RED}ERROR: ${NOCOLOR}${GREEN}There seems to be a ReconciliationException in the operator logs...${NOCOLOR}"
+         dump_error=$(cat /tmp/operator.log | grep -a20 "ReconciliationException")
+         echo "$dump_error"
+         echo -e "${RED}################### END ERROR ###########################${NOCOLOR}"
+        fi
+       #################################################################
+       # end
+       #################################################################
 
         # delete the flinkdeployment so we don't have old failures hanging around
         kubectl get flinkdeployment --no-headers | grep $JOB_NAME | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
