@@ -107,9 +107,7 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          -f .github/workflows/config.py
-
-        exit 128
+          -f .github/workflows/config.py > execute.log
 
         # export all the valuable information from the logs
         JOB_NAME=$(cat execute.log | grep -oP 'flinkdeployment\.flink\.apache\.org/\K[^ ]+' | head -n1)
@@ -121,6 +119,7 @@ jobs:
         FLINK_DASH=$(cat execute.log | grep -oP "You can run '\K[^']+(?=')")
         echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
       env:
+        EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
         FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
