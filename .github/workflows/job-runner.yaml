@@ -107,7 +107,9 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          -f .github/workflows/config.py > execute.log
+          -f .github/workflows/config.py
+
+        exit 128
 
         # export all the valuable information from the logs
         JOB_NAME=$(cat execute.log | grep -oP 'flinkdeployment\.flink\.apache\.org/\K[^ ]+' | head -n1)
