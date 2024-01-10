@@ -124,6 +124,8 @@ jobs:
         echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
       env:
         EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+        EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+        EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
         FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
