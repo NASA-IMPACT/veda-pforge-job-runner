@@ -26,6 +26,10 @@ on:
         description: 'Number of task managers to spin up'
         required: true
         default: '1'
+      earthdata_protocol:
+        description: 'What earthdata protocol to use when accessing files (s3 or https).'
+        required: false
+        default: 's3'
 
 jobs:
   name-job:
