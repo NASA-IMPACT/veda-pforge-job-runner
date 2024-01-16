@@ -26,8 +26,8 @@ on:
         description: 'Number of task managers to spin up'
         required: true
         default: '1'
-      earthdata_protocol:
-        description: 'What earthdata protocol to use when accessing files (s3 or https).'
+      protocol:
+        description: 'What protocol to use when accessing files (s3 or https).'
         required: false
         default: 's3'
 
@@ -132,7 +132,7 @@ jobs:
         S3_BUCKET: ${{ github.event.inputs.bucket }}
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
-        EARTHDATA_PROTOCOL: ${{ github.event.inputs.earthdata_proctocol }}
+        PROTOCOL: ${{ github.event.inputs.proctocol }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
       if: steps.executejob.outcome == 'failure'
