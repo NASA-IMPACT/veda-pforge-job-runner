@@ -47,6 +47,7 @@ c.TargetStorage.root_path = f"{BUCKET_PREFIX}/{{job_name}}/output"
 c.TargetStorage.fsspec_args = {
     "key": os.environ.get("S3_DEFAULT_AWS_ACCESS_KEY_ID"),
     "secret": os.environ.get("S3_DEFAULT_AWS_SECRET_ACCESS_KEY"),
+    "anon": False,
     "client_kwargs": {"region_name": "us-west-2"}
 }
 

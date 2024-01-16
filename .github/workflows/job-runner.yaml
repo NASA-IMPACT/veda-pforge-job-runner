@@ -69,13 +69,15 @@ jobs:
     - name: install deps
       run: |
         # TODO: move to requirements file
+        # pangeo-forge-recipes>=0.10.4
         python -m pip install --upgrade pip
         pip install \
           fsspec \
           s3fs \
           boto3 \
+          requests \
           apache-beam==2.52.0 \
-          pangeo-forge-recipes>=0.10.0 \
+          pangeo-forge-recipes>=0.10.4 \
           pangeo-forge-runner>=0.9.1 \
           python-cmr==0.9.0
 
@@ -120,6 +122,8 @@ jobs:
         echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
       env:
         EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+        EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+        EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
         FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
