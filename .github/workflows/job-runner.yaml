@@ -132,6 +132,7 @@ jobs:
         S3_BUCKET: ${{ github.event.inputs.bucket }}
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
+        EARTHDATA_PROTOCOL: ${{ github.event.inputs.earthdata_proctocol }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
       if: steps.executejob.outcome == 'failure'
