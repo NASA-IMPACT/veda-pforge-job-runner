@@ -81,8 +81,8 @@ jobs:
           boto3 \
           requests \
           apache-beam==2.52.0 \
-          pangeo-forge-recipes>=0.10.4 \
-          pangeo-forge-runner>=0.9.1 \
+          git+https://github.com/pangeo-forge/pangeo-forge-recipes.git@main#egg=pangeo-forge-recipes \
+          pangeo-forge-runner>=0.9.3 \
           python-cmr==0.9.0
 
     - name: set up aws credentials for job runner user
