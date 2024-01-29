@@ -50,8 +50,7 @@ After getting invited to this private repo you can do the following:
 
 4. Trigger your workflow
 
-    1. **Option 1:** Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left hand navigation under "Actions". The current name is "dispatch job". Since the dispatch job workflow has a workflow_dispatch trigger, you can select "Run workflow" and input suitable options.
-
+    1. **Option 1:** Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left-hand navigation, under "Actions". The current job name is "dispatch job". Since the "dispatch job" workflow has a `workflow_dispatch` trigger, you can select "Run workflow" and use the form to input suitable options.
 
     <img width="394" alt="Screenshot 2024-01-29 at 12 29 04 PM" src="https://github.com/NASA-IMPACT/veda-pforge-job-runner/assets/15016780/0d2420f9-7fd0-45fd-a8e0-123d72c4d6af">
 
