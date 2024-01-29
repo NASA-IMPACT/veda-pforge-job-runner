@@ -48,7 +48,14 @@ After getting invited to this private repo you can do the following:
             default: '1'
     ```
 
-4. Fire off a `curl` command to Github. Replace `<your-PAT-here>` with the one you created in step one above. And replace `<your-JSON-snippet-here>` with the one you created in step two above:
+4. Trigger your workflow
+
+    1. **Option 1:** Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left hand navigation under "Actions". The current name is "dispatch job". Since the dispatch job workflow has a workflow_dispatch trigger, you can select "Run workflow" and input suitable options.
+
+
+    <img width="394" alt="Screenshot 2024-01-29 at 12 29 04 PM" src="https://github.com/NASA-IMPACT/veda-pforge-job-runner/assets/15016780/0d2420f9-7fd0-45fd-a8e0-123d72c4d6af">
+
+    2. **Option 2:** Fire off a `curl` command to Github. Replace `<your-PAT-here>` with the one you created in step one above. And replace `<your-JSON-snippet-here>` with the one you created in step two above:
 
     ```bash
        curl -X POST \
@@ -69,9 +76,9 @@ After getting invited to this private repo you can do the following:
          -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"1"}}'
     ```
 
-5. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
+6. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
 
-6. If multiple jobs are running you can get help finding your job using the "Actor" filter
+7. If multiple jobs are running you can get help finding your job using the "Actor" filter
 
 ![](docs/img/xfilter_job.png)
 
