@@ -252,10 +252,10 @@ jobs:
           kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/jobmanager.log
           cat /tmp/jobmanager.log
           echo "##################### TASK MANAGER ######################"
-          # depending on the `inputs.parallism` we can more than one taskmanager so only dump logs for the first three
+          # depending on the `inputs.parallism` we can have more than one taskmanager so only dump logs for the first three
           iterations=$(expr "${{ github.event.inputs.parallelism }}" + 0)  # cast to integer
-          for (( i = 0; i < iterations; i++ )); do
-              kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
+          for (( i = 1; i < iterations; i++ )); do
+              kubectl get pod | grep ${{ needs.run-job.outputs.job_name }} | grep task-manager-$i | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
               cat /tmp/taskmanager.log
               # break the loop if iteration count exceeds 3
               if (( i >= 3 )); then
