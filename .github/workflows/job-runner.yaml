@@ -259,7 +259,7 @@ jobs:
           parallelism_input="${{ github.event.inputs.parallelism }}"
           iterations=$(expr $parallelism_input + 0)  # cast to integer
           for (( i = 1; i <= iterations; i++ )); do
-              echo "echo #### taskmanager $i ####"
+              echo "echo #### taskmanager-$i ####"
               kubectl get pod | grep ${{ needs.run-job.outputs.job_name }} | grep taskmanager-1-$i | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
               cat /tmp/taskmanager.log
           done
