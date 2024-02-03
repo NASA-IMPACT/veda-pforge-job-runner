@@ -215,9 +215,9 @@ jobs:
         run: |
           aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
+#      - name: Setup upterm session
+#        uses: lhotari/action-upterm@v1
+#
       - name: monitor logs of job manager
         id: monitorjob
         timeout-minutes: 120
@@ -255,15 +255,13 @@ jobs:
           kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/jobmanager.log
           cat /tmp/jobmanager.log
           echo "##################### TASK MANAGER ######################"
-          # depending on the `inputs.parallism` we can have more than one taskmanager so only dump logs for the first three
-          iterations=$(expr "${{ github.event.inputs.parallelism }}" + 0)  # cast to integer
-          for (( i = 1; i < iterations; i++ )); do
-              kubectl get pod | grep ${{ needs.run-job.outputs.job_name }} | grep task-manager-$i | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
+          # depending on the `inputs.parallism` we can have more than one taskmanager
+          parallelism_input="${{ github.event.inputs.parallelism }}"
+          iterations=$(expr $parallelism_input + 0)  # cast to integer
+          for (( i = 1; i <= iterations; i++ )); do
+              echo "echo #### taskmanager $i ####"
+              kubectl get pod | grep ${{ needs.run-job.outputs.job_name }} | grep taskmanager-1-$i | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
               cat /tmp/taskmanager.log
-              # break the loop if iteration count exceeds 3
-              if (( i >= 3 )); then
-                  break
-              fi
           done
 
           # NOTE: we actually want the failed flink deployments to sick around b/c we might want to inspect the flink dashboard
