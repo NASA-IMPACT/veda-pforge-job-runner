@@ -215,6 +215,9 @@ jobs:
         run: |
           aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: monitor logs of job manager
         id: monitorjob
         timeout-minutes: 120
