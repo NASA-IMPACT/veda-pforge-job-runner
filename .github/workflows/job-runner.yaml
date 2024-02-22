@@ -30,6 +30,10 @@ on:
         description: 'What protocol to use when accessing files (s3 or https).'
         required: false
         default: 's3'
+      resource_profile:
+        description: 'jobs have different memory requirements so choose (small[7168M], medium[10240M], large[15360M], xlarge[20480M])'
+        required: false
+        default: 'small'
 
 jobs:
   name-job:
@@ -61,7 +65,7 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: echo server
+    - name: echo inputs to user
       run: |
         echo "Manually triggered workflow:  \
           ${{ github.event.inputs.repo }} \
@@ -81,8 +85,7 @@ jobs:
           boto3 \
           requests \
           apache-beam==2.52.0 \
-          git+https://github.com/pangeo-forge/pangeo-forge-recipes.git@main#egg=pangeo-forge-recipes \
-          pangeo-forge-runner>=0.9.3 \
+          git+https://github.com/pangeo-forge/pangeo-forge-runner.git@main#egg=pangeo-forge-runner \
           python-cmr==0.9.0
 
     - name: set up aws credentials for job runner user
@@ -137,6 +140,7 @@ jobs:
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
         PROTOCOL: ${{ github.event.inputs.protocol }}
+        RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
       if: steps.executejob.outcome == 'failure'
@@ -177,7 +181,7 @@ jobs:
         # force GH action to show failed result
         exit 128
 
-    - name: report running job id for user
+    - name: echo JobID, JobName, FlinkDashboard to user
       id: report_ids
       run: |
         # TODO: we also need to report historyserver URL and flink dashboard URL
@@ -218,9 +222,9 @@ jobs:
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
 #
-      - name: monitor logs of job manager
+      - name: monitor logs of job manager and report final status
         id: monitorjob
-        timeout-minutes: 120
+        timeout-minutes: 240
         continue-on-error: true
         run: |
           # TODO: this needs to not check the logs but the historyserver status
@@ -245,7 +249,7 @@ jobs:
             exit 128
           fi
 
-      - name: cleanup if monitor job fails
+      - name: dump logs
         if: steps.monitorjob.outcome == 'failure'
         run: |
           # much easier to do in bash than in Python via subprocess
@@ -264,7 +268,7 @@ jobs:
               cat /tmp/taskmanager.log
           done
 
-          # NOTE: we actually want the failed flink deployments to sick around b/c we might want to inspect the flink dashboard
+          # NOTE: we actually want the failed flink deployments to stick around b/c we might want to inspect the flink dashboard
           # kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
 
           #################################################################
