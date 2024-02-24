@@ -76,17 +76,12 @@ jobs:
 
     - name: install deps
       run: |
-        # TODO: move to requirements file
-        # pangeo-forge-recipes>=0.10.4
         python -m pip install --upgrade pip
         pip install \
-          fsspec \
-          s3fs \
           boto3 \
           requests \
-          apache-beam==2.52.0 \
-          git+https://github.com/pangeo-forge/pangeo-forge-runner.git@main#egg=pangeo-forge-runner \
-          python-cmr==0.9.0
+          python-cmr==0.9.0 \
+          git+https://github.com/pangeo-forge/pangeo-forge-runner.git@gcorradini/infer_deps#egg=pangeo-forge-runner \
 
     - name: set up aws credentials for job runner user
       uses: aws-actions/configure-aws-credentials@v2
