@@ -30,6 +30,10 @@ on:
         description: 'What protocol to use when accessing files (s3 or https).'
         required: false
         default: 's3'
+      resource_profile:
+        description: 'jobs have different memory requirements so choose (small[7168M], medium[10240M], large[15360M], xlarge[20480M])'
+        required: false
+        default: 'small'
 
 jobs:
   name-job:
@@ -43,7 +47,7 @@ jobs:
           repo_name=$(basename -s .git "${{ github.event.inputs.repo }}")
           echo "result=$repo_name" >> $GITHUB_OUTPUT
   run-job:
-    if: github.actor == 'ranchodeluxe' || github.actor == 'abarciauskas-bgse' || github.actor == 'norlandrhagen' || github.actor == 'sharkinsspatial'
+    if: contains('["ranchodeluxe","abarciauskas-bgse", "norlandrhagen", "sharkinsspatial", "moradology", "thodson-usgs"]', github.actor)
     name: kickoff job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: name-job
     outputs:
@@ -61,7 +65,7 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: echo server
+    - name: echo inputs to user
       run: |
         echo "Manually triggered workflow:  \
           ${{ github.event.inputs.repo }} \
@@ -72,18 +76,8 @@ jobs:
 
     - name: install deps
       run: |
-        # TODO: move to requirements file
-        # pangeo-forge-recipes>=0.10.4
         python -m pip install --upgrade pip
-        pip install \
-          fsspec \
-          s3fs \
-          boto3 \
-          requests \
-          apache-beam==2.52.0 \
-          git+https://github.com/pangeo-forge/pangeo-forge-recipes.git@main#egg=pangeo-forge-recipes \
-          pangeo-forge-runner>=0.9.3 \
-          python-cmr==0.9.0
+        pip install pangeo-forge-runner>=0.10.0
 
     - name: set up aws credentials for job runner user
       uses: aws-actions/configure-aws-credentials@v2
@@ -140,6 +134,7 @@ jobs:
         S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
         S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
         PROTOCOL: ${{ github.event.inputs.protocol }}
+        RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
       if: steps.executejob.outcome == 'failure'
@@ -180,7 +175,7 @@ jobs:
         # force GH action to show failed result
         exit 128
 
-    - name: report running job id for user
+    - name: echo JobID, JobName, FlinkDashboard to user
       id: report_ids
       run: |
         # TODO: we also need to report historyserver URL and flink dashboard URL
@@ -218,9 +213,12 @@ jobs:
         run: |
           aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
-      - name: monitor logs of job manager
+#      - name: Setup upterm session
+#        uses: lhotari/action-upterm@v1
+#
+      - name: monitor logs of job manager and report final status
         id: monitorjob
-        timeout-minutes: 120
+        timeout-minutes: 240
         continue-on-error: true
         run: |
           # TODO: this needs to not check the logs but the historyserver status
@@ -245,7 +243,7 @@ jobs:
             exit 128
           fi
 
-      - name: cleanup if monitor job fails
+      - name: dump logs
         if: steps.monitorjob.outcome == 'failure'
         run: |
           # much easier to do in bash than in Python via subprocess
@@ -255,13 +253,17 @@ jobs:
           kubectl get pod | grep -v taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl logs pod/{} > /tmp/jobmanager.log
           cat /tmp/jobmanager.log
           echo "##################### TASK MANAGER ######################"
-          # depending on the `inputs.parallism` we can more than one taskmanager so grab the first one
-          # TODO: loop through them all and dump the logs
-          kubectl get pod | grep taskmanager | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
-          cat /tmp/taskmanager.log
+          # depending on the `inputs.parallism` we can have more than one taskmanager
+          parallelism_input="${{ github.event.inputs.parallelism }}"
+          iterations=$(expr $parallelism_input + 0)  # cast to integer
+          for (( i = 1; i <= iterations; i++ )); do
+              echo "echo #### taskmanager-$i ####"
+              kubectl get pod | grep ${{ needs.run-job.outputs.job_name }} | grep taskmanager-1-$i | cut -d' ' -f1 | head -n1 | xargs -I{} kubectl logs pod/{} -c flink-main-container > /tmp/taskmanager.log
+              cat /tmp/taskmanager.log
+          done
 
-          # delete the flinkdeployment so we don't have old failures hanging around
-          kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
+          # NOTE: we actually want the failed flink deployments to stick around b/c we might want to inspect the flink dashboard
+          # kubectl get flinkdeployment --no-headers | grep ${{ needs.run-job.outputs.job_name }} | cut -d' ' -f1 | xargs -I{} kubectl delete flinkdeployment/{}
 
           #################################################################
           # provide feedback about OOM errors where we've seen them before
