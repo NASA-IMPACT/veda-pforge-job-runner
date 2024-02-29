@@ -113,6 +113,9 @@ jobs:
         exit 666
 
         # export all the valuable information from the logs
+        RECIPE_JOB_NAME=$(cat execute.log | grep -oP 'Job name is \K[^ ]+' | head -n1)
+        echo "RECIPE_JOB_NAME=$RECIPE_JOB_NAME" >> $GITHUB_ENV
+
         JOB_NAME=$(cat execute.log | grep -oP 'flinkdeployment\.flink\.apache\.org/\K[^ ]+' | head -n1)
         echo "JOB_NAME=$JOB_NAME" >> $GITHUB_ENV
 
@@ -181,7 +184,9 @@ jobs:
         # TODO: we also need to report historyserver URL and flink dashboard URL
         # but this also requires us to think how we're going to have a thin
         # layer of authentication around these services so they aren't totally public
-        echo '############ JOB NAME ################'
+        echo '############ RECIPE JOB NAME ################'
+        echo $RECIPE_JOB_NAME
+        echo '############ FLINK JOB NAME ################'
         echo $JOB_NAME
         echo "job_name=$JOB_NAME" >> $GITHUB_OUTPUT
         echo '############ JOB ID ################'
