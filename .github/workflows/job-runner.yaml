@@ -50,6 +50,7 @@ jobs:
     if: contains('["ranchodeluxe","abarciauskas-bgse", "norlandrhagen", "sharkinsspatial", "moradology", "thodson-usgs"]', github.actor)
     name: kickoff job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: name-job
+    environment: veda-smce
     outputs:
       job_name: ${{ steps.report_ids.outputs.job_name }}
       job_id: ${{ steps.report_ids.outputs.job_id }}
@@ -94,7 +95,7 @@ jobs:
 
     - name: update kubeconfig with cluster
       run: |
-        aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
     - name: execute recipe on k8s cluster
       id: executejob
