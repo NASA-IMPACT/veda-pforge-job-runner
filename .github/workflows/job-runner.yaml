@@ -90,7 +90,7 @@ jobs:
 
     - name: update kubeconfig with cluster
       run: |
-        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+        aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
     - name: execute recipe on k8s cluster
       id: executejob
@@ -125,7 +125,7 @@ jobs:
         FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
         PRUNE_OPTION: ${{ github.event.inputs.prune }}
         PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
-        OUTPUT_BUCKET: $OUTPUT_BUCKET
+        OUTPUT_BUCKET: ${{ vars.OUTPUT_BUCKET }}
         AUTH_MODE: ${{ github.event.inputs.auth_mode }}
         RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
 
@@ -206,7 +206,7 @@ jobs:
 
       - name: update kubeconfig with cluster
         run: |
-          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+          aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
