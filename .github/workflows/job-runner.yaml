@@ -14,22 +14,18 @@ on:
         description: 'The subdir of the feedstock directory in the repo'
         required: true
         default: 'feedstock'
-      bucket:
-        description: 'This job runner leverages s3fs.S3FileSystem for your recipe cache and output. Choices currently are: "default"'
-        required: true
-        default: 'default'
       prune:
         description: 'Only run the first two time steps'
         required: true
         default: '0'
       parallelism:
-        description: 'Number of task managers to spin up'
+        description: 'Number of workers to run in parallel'
         required: true
         default: '1'
-      protocol:
-        description: 'What protocol to use when accessing files (s3 or https).'
+      auth_mode:
+        description: 'What auth mode (edl or iamrole) to use when accessing files.'
         required: false
-        default: 's3'
+        default: 'iamrole'
       resource_profile:
         description: 'jobs have different memory requirements so choose (small[7168M], medium[10240M], large[15360M], xlarge[20480M])'
         required: false
@@ -50,6 +46,7 @@ jobs:
     if: contains('["ranchodeluxe","abarciauskas-bgse", "norlandrhagen", "sharkinsspatial", "moradology", "thodson-usgs"]', github.actor)
     name: kickoff job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
     needs: name-job
+    environment: veda-smce
     outputs:
       job_name: ${{ steps.report_ids.outputs.job_name }}
       job_id: ${{ steps.report_ids.outputs.job_id }}
@@ -70,7 +67,6 @@ jobs:
         echo "Manually triggered workflow:  \
           ${{ github.event.inputs.repo }} \
           ${{ github.event.inputs.ref }} \
-          ${{ github.event.inputs.bucket }} \
           ${{ github.event.inputs.parallelism }} \
           ${{ github.event.inputs.prune }}"
 
@@ -94,7 +90,7 @@ jobs:
 
     - name: update kubeconfig with cluster
       run: |
-        aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
     - name: execute recipe on k8s cluster
       id: executejob
@@ -122,7 +118,6 @@ jobs:
         FLINK_DASH=$(cat execute.log | grep -oP "You can run '\K[^']+(?=')")
         echo "FLINK_DASH=$FLINK_DASH" >> $GITHUB_ENV
       env:
-        EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
         EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
         EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
         REPO: ${{ github.event.inputs.repo }}
@@ -130,10 +125,8 @@ jobs:
         FEEDSTOCK_SUBDIR: ${{ github.event.inputs.feedstock_subdir }}
         PRUNE_OPTION: ${{ github.event.inputs.prune }}
         PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
-        S3_BUCKET: ${{ github.event.inputs.bucket }}
-        S3_DEFAULT_AWS_ACCESS_KEY_ID: ${{ secrets.S3_DEFAULT_AWS_ACCESS_KEY_ID }}
-        S3_DEFAULT_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DEFAULT_AWS_SECRET_ACCESS_KEY }}
-        PROTOCOL: ${{ github.event.inputs.protocol }}
+        OUTPUT_BUCKET: $OUTPUT_BUCKET
+        AUTH_MODE: ${{ github.event.inputs.auth_mode }}
         RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
@@ -213,7 +206,7 @@ jobs:
 
       - name: update kubeconfig with cluster
         run: |
-          aws eks update-kubeconfig --name pangeo-forge-v3 --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
 
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
