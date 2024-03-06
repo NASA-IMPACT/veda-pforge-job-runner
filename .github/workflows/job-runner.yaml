@@ -30,7 +30,7 @@ on:
         description: 'A unique job name (no other existing filnk deployment can have it) so we can inspect metrics easier in Grafana.'
         required: true
       resource_profile:
-        description: 'jobs have different memory requirements so choose (small[5632M], medium[10240M], large[15360M], xlarge[20480M])'
+        description: 'jobs have different memory requirements so choose (small[7824_MiB], medium[9824_MiB], large[11824_MiB], xlarge[13824_MiB])'
         required: false
         default: 'small'
 

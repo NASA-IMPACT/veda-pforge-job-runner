@@ -76,10 +76,10 @@ def calc_task_manager_resources(task_manager_process_memory):
 
 resource_profile_choice = os.environ.get("RESOURCE_PROFILE")
 task_manager_process_memory_map = {
-    "small": 5632,
-    "medium": 10240,
-    "large": 15360,
-    "xlarge": 20480,
+    "small": 7824,
+    "medium": 9824,
+    "large": 11824,
+    "xlarge": 13824,
 }
 if resource_profile_choice not in list(task_manager_process_memory_map.keys()):
     raise ValueError(
@@ -100,7 +100,7 @@ c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 c.FlinkOperatorBakery.parallelism = int(os.environ.get("PARALLELISM_OPTION"))
 c.FlinkOperatorBakery.enable_job_archiving = False
 c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
+c.FlinkOperatorBakery.job_manager_resources = {"memory": "1280m", "cpu": 0.3}
 c.FlinkOperatorBakery.task_manager_resources = {
     "memory": f"{task_manager_process_memory_map[resource_profile_choice]}m",
     "cpu": 0.3
