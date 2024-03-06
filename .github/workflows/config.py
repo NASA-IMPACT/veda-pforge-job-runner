@@ -98,7 +98,7 @@ c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
 c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 
 c.FlinkOperatorBakery.parallelism = int(os.environ.get("PARALLELISM_OPTION"))
-c.FlinkOperatorBakery.enable_job_archiving = True
+c.FlinkOperatorBakery.enable_job_archiving = False
 c.FlinkOperatorBakery.flink_version = "1.16"
 c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
 c.FlinkOperatorBakery.task_manager_resources = {
