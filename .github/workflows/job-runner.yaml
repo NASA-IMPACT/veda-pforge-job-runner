@@ -85,13 +85,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pangeo-forge-runner>=0.10.0
 
-    - name: set up aws credentials for job runner user
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.GH_ACTIONS_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.GH_ACTIONS_AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.GH_ACTIONS_AWS_REGION }}
-
     - name: install kubectl
       run: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -100,7 +93,7 @@ jobs:
 
     - name: update kubeconfig with cluster
       run: |
-        aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+        aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region us-west-2
 
     - name: execute recipe on k8s cluster
       id: executejob
@@ -216,7 +209,7 @@ jobs:
 
       - name: update kubeconfig with cluster
         run: |
-          aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ secrets.GH_ACTIONS_AWS_REGION }}
+          aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region us-west-2
 
 #      - name: Setup upterm session
 #        uses: lhotari/action-upterm@v1
