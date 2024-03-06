@@ -109,7 +109,7 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          --Bake.job_name=${{ github.event.inputs.repo }} \
+          --Bake.job_name="${{ github.event.inputs.job_name }}" \
           -f .github/workflows/config.py > execute.log
 
         # export all the valuable information from the logs
