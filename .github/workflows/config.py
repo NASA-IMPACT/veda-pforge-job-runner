@@ -76,7 +76,7 @@ def calc_task_manager_resources(task_manager_process_memory):
 
 resource_profile_choice = os.environ.get("RESOURCE_PROFILE")
 task_manager_process_memory_map = {
-    "small": 7168,
+    "small": 5632,
     "medium": 10240,
     "large": 15360,
     "xlarge": 20480,

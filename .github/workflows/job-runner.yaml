@@ -26,8 +26,11 @@ on:
         description: 'What auth mode (edl or iamrole) to use when accessing files.'
         required: false
         default: 'iamrole'
+      job_name:
+        description: 'A unique job name (no other existing filnk deployment can have it) so we can inspect metrics easier in Grafana.'
+        required: true
       resource_profile:
-        description: 'jobs have different memory requirements so choose (small[7168M], medium[10240M], large[15360M], xlarge[20480M])'
+        description: 'jobs have different memory requirements so choose (small[5632M], medium[10240M], large[15360M], xlarge[20480M])'
         required: false
         default: 'small'
 
@@ -106,6 +109,7 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
+          --Bake.job_name=${{ github.event.inputs.repo }} \
           -f .github/workflows/config.py > execute.log
 
         # export all the valuable information from the logs
@@ -192,6 +196,7 @@ jobs:
   monitor-job:
     runs-on: ubuntu-latest
     name: monitor job ${{ needs.name-job.outputs.repo_name }}@${{ github.event.inputs.ref }}
+    environment: veda-smce
     needs: [name-job, run-job]
     steps:
       - name: Configure AWS credentials
