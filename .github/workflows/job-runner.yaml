@@ -30,7 +30,7 @@ on:
         description: 'A unique job name (no other existing filnk deployment can have it) so we can inspect metrics easier in Grafana.'
         required: true
       resource_profile:
-        description: 'jobs have different memory requirements so choose (small[5632M], medium[10240M], large[15360M], xlarge[20480M])'
+        description: 'jobs have different memory requirements so choose (small[7824_MiB], medium[9824_MiB], large[11824_MiB], xlarge[13824_MiB])'
         required: false
         default: 'small'
 
@@ -64,7 +64,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v3
       with:
         role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
         role-session-name: veda-pforge-run-job
@@ -109,7 +109,7 @@ jobs:
           bake \
           --repo=${{ github.event.inputs.repo }} \
           --ref=${{ github.event.inputs.ref }} \
-          --Bake.job_name=${{ github.event.inputs.repo }} \
+          --Bake.job_name="${{ github.event.inputs.job_name }}" \
           -f .github/workflows/config.py > execute.log
 
         # export all the valuable information from the logs
@@ -200,10 +200,11 @@ jobs:
     needs: [name-job, run-job]
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
           role-session-name: veda-pforge-monitor-job
+          role-duration-seconds: 21600  # note this has to match our timeout-minutes below for monitoring
           aws-region: us-west-2
 
       - name: install kubectl
@@ -221,7 +222,7 @@ jobs:
 #
       - name: monitor logs of job manager and report final status
         id: monitorjob
-        timeout-minutes: 240
+        timeout-minutes: 360
         continue-on-error: true
         run: |
           # TODO: this needs to not check the logs but the historyserver status
