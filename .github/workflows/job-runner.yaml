@@ -68,6 +68,7 @@ jobs:
       with:
         role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
         role-session-name: veda-pforge-run-job
+        role-duration-seconds: 43200
         aws-region: us-west-2
 
     - name: set up python 3.10
@@ -204,7 +205,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
           role-session-name: veda-pforge-monitor-job
-          role-duration-seconds: 21600  # note this has to match our timeout-minutes below for monitoring
+          role-duration-seconds: 43200  # note this has to match our timeout-minutes below for monitoring
           aws-region: us-west-2
 
       - name: install kubectl
@@ -222,7 +223,7 @@ jobs:
 #
       - name: monitor logs of job manager and report final status
         id: monitorjob
-        timeout-minutes: 360
+        timeout-minutes: 720
         continue-on-error: true
         run: |
           # TODO: this needs to not check the logs but the historyserver status
