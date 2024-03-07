@@ -136,9 +136,6 @@ jobs:
         OUTPUT_BUCKET: ${{ vars.OUTPUT_BUCKET }}
         AUTH_MODE: ${{ github.event.inputs.auth_mode }}
         RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
       if: steps.executejob.outcome == 'failure'

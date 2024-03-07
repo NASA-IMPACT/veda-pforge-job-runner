@@ -1,4 +1,15 @@
 import os
+import boto3
+
+
+# assume our designated pangeo-runner dep injected role for s3 write access
+sts_client = boto3.client('sts')
+assumed_role = sts_client.assume_role(
+    RoleArn="arn:aws:iam::444055461661:role/test-pangeo-forge-runner-s3-write-role",
+    RoleSessionName="veda-pforge-s3-dep-injection"
+)
+tmp_credentials = assumed_role['Credentials']
+
 
 def calc_task_manager_resources(task_manager_process_memory):
     """
@@ -134,9 +145,9 @@ c.TargetStorage.root_path = f"{BUCKET_PREFIX}/{{job_name}}/output"
 # and our runner workflow would need to not only assume the GH actions role but then another role
 # that has permissions to s3. Doing this for now b/c we're short on time
 c.TargetStorage.fsspec_args = {
-    "key": os.environ.get("AWS_ACCESS_KEY_ID"),
-    "secret": os.environ.get("AWS_SECRET_ACCESS_KEY"),
-    "token": os.environ.get("AWS_SESSION_TOKEN"),
+    "key": tmp_credentials['AccessKeyId'],
+    "secret": tmp_credentials['SecretAccessKey'],
+    "token": tmp_credentials['SessionToken'],
     "anon": False,
     "client_kwargs": {"region_name": "us-west-2"},
 }
