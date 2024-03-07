@@ -1,12 +1,12 @@
 import os
 import boto3
 
-
+print(f"[ WAT??????????????? ]: FAKE{os.environ['AWS_ACCESS_KEY_ID']}FAKE")
 # assume our designated pangeo-runner dep injected role for s3 write access
 sts_client = boto3.client('sts')
 assumed_role = sts_client.assume_role(
     RoleArn="arn:aws:iam::444055461661:role/test-pangeo-forge-runner-s3-write-role",
-    RoleSessionName="veda-pforge-s3-dep-injection"
+    RoleSessionName="veda-pforge-s3-dep-injection",
 )
 tmp_credentials = assumed_role['Credentials']
 

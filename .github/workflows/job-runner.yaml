@@ -68,7 +68,7 @@ jobs:
       with:
         role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
         role-session-name: veda-pforge-run-job
-        role-duration-seconds: 43200
+        role-duration-seconds: 3600
         aws-region: us-west-2
 
     - name: set up python 3.10
