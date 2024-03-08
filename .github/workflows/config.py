@@ -1,6 +1,5 @@
 import os
 
-
 def calc_task_manager_resources(task_manager_process_memory):
     """
     illustration of Flink memory model:
@@ -117,23 +116,6 @@ c.FlinkOperatorBakery.flink_configuration = {
 BUCKET_PREFIX = os.environ.get("OUTPUT_BUCKET")
 c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
 c.TargetStorage.root_path = f"{BUCKET_PREFIX}/{{job_name}}/output"
-#
-# NOTE: lots of explanation needed here:
-#
-# 1) we NEED to always have `fsspec_args` set up with credentials b/c some pangeo-forge-recipe
-# transforms/subroutines don't get explicit dep injection and they forward fsspec credentials
-# to those transforms/subroutines via these passed credentials
-#
-# 2) the os env vars we are sourcing here come from GH actions `aws-actions/configure-aws-credentials`.
-# the goal of that assume role is to allow GH to talk with the EKS cluster and kick off pangeo jobs
-# but this role also has s3 permissions. Just because our s3 pangeo-forge output bucket lives in SMCE
-# this role will also sneakily give us a session token to be able to write to the bucket during jobs
-# with the correct extended token duration. This is in addition to our Flink cluster having a ServiceAccount
-# tied to another IAM Role that also grants permissions to write to s3
-#
-# TODO: in the future we should probably have a dedicated role (it could be the Flink one possibly)
-# and our runner workflow would need to not only assume the GH actions role but then another role
-# that has permissions to s3. Doing this for now b/c we're short on time
 c.TargetStorage.fsspec_args = {
     "anon": False,
     "client_kwargs": {"region_name": "us-west-2"},
