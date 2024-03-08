@@ -68,8 +68,8 @@ def calc_task_manager_resources(task_manager_process_memory):
     # calculate dynamic values
     return {
         "total_flink": int(total_flink_memory),
-        "task_heap": int(remaining_memory * 0.75),
-        "task_off_heap": int(remaining_memory * 0.25),
+        "task_heap": int(remaining_memory * 0.68),
+        "task_off_heap": int(remaining_memory * 0.32),
         "task_memory_managed_fraction": managed_memory_ratio
     }
 
