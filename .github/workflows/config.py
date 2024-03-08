@@ -121,6 +121,6 @@ c.TargetStorage.fsspec_args = {
     "client_kwargs": {"region_name": "us-west-2"},
 }
 
-c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
-c.InputCacheStorage.fsspec_args = c.TargetStorage.fsspec_args
-c.InputCacheStorage.root_path = f"{BUCKET_PREFIX}/cache/"
+# c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
+# c.InputCacheStorage.fsspec_args = c.TargetStorage.fsspec_args
+# c.InputCacheStorage.root_path = f"{BUCKET_PREFIX}/cache/"
