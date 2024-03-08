@@ -135,6 +135,7 @@ jobs:
         PARALLELISM_OPTION: ${{ github.event.inputs.parallelism }}
         OUTPUT_BUCKET: ${{ vars.OUTPUT_BUCKET }}
         AUTH_MODE: ${{ github.event.inputs.auth_mode }}
+        AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
         RESOURCE_PROFILE: ${{ github.event.inputs.resource_profile }}
 
     - name: cleanup if "pangeo-forge-runner bake" failed
