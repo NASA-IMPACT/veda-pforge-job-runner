@@ -27,7 +27,7 @@ on:
         required: false
         default: 'iamrole'
       job_name:
-        description: 'A unique job name (no other existing filnk deployment can have it) so we can inspect metrics easier in Grafana.'
+        description: 'A unique job name (no other existing filnk deployment can have it) so we can inspect metrics easier in Grafana. job_name must match the regex ^[a-z][-_0-9a-z]{0,62}$.'
         required: true
       resource_profile:
         description: 'jobs have different memory requirements so choose (small[7824_MiB], medium[9824_MiB], large[11824_MiB], xlarge[13824_MiB])'
