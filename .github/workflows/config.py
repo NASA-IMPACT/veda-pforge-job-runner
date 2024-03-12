@@ -76,10 +76,10 @@ def calc_task_manager_resources(task_manager_process_memory):
 
 resource_profile_choice = os.environ.get("RESOURCE_PROFILE")
 task_manager_process_memory_map = {
-    "small": 7168,
-    "medium": 10240,
-    "large": 15360,
-    "xlarge": 20480,
+    "small": 7824,
+    "medium": 9824,
+    "large": 11824,
+    "xlarge": 13824,
 }
 if resource_profile_choice not in list(task_manager_process_memory_map.keys()):
     raise ValueError(
@@ -98,9 +98,9 @@ c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
 c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
 
 c.FlinkOperatorBakery.parallelism = int(os.environ.get("PARALLELISM_OPTION"))
-c.FlinkOperatorBakery.enable_job_archiving = True
+c.FlinkOperatorBakery.enable_job_archiving = False
 c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1536m", "cpu": 0.3}
+c.FlinkOperatorBakery.job_manager_resources = {"memory": "1280m", "cpu": 0.3}
 c.FlinkOperatorBakery.task_manager_resources = {
     "memory": f"{task_manager_process_memory_map[resource_profile_choice]}m",
     "cpu": 0.3
@@ -121,6 +121,6 @@ c.TargetStorage.fsspec_args = {
     "client_kwargs": {"region_name": "us-west-2"},
 }
 
-c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
-c.InputCacheStorage.fsspec_args = c.TargetStorage.fsspec_args
-c.InputCacheStorage.root_path = f"{BUCKET_PREFIX}/cache/"
+# c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
+# c.InputCacheStorage.fsspec_args = c.TargetStorage.fsspec_args
+# c.InputCacheStorage.root_path = f"{BUCKET_PREFIX}/cache/"
