@@ -14,6 +14,30 @@ resource "aws_emrserverless_application" "spark" {
     memory             = var.max_memory
   }
 
+  initial_capacity {
+    initial_capacity_type = "Driver"
+    initial_capacity_config {
+        worker_count = 1
+        worker_configuration {
+            cpu    = "4 vCPU"
+            disk   = "200 GB"
+            memory = "16 GB"
+          }
+      }
+  }
+
+  initial_capacity {
+    initial_capacity_type = "Executor"
+    initial_capacity_config {
+        worker_count = 3
+        worker_configuration {
+            cpu    = "16 vCPU"
+            disk   = "200 GB"
+            memory = "120 GB"
+          }
+      }
+  }
+
   network_configuration {
     subnet_ids         = var.private_subnet_ids
     security_group_ids = var.emr_sg_ids
