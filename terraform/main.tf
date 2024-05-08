@@ -33,8 +33,8 @@ locals {
   emr_app_name  = join("_", [var.emr_name, terraform.workspace])
 }
 
-# Fail if workspace is not set
-# For details: https://developer.hashicorp.com/terraform/language/state/workspaces#using-workspaces
+# fail if workspace is not set
+# https://developer.hashicorp.com/terraform/language/state/workspaces#using-workspaces
 resource "null_resource" "fail_if_default_workspace" {
   triggers = {
     is_default_workspace = local.is_default_workspace
@@ -45,21 +45,17 @@ resource "null_resource" "fail_if_default_workspace" {
   }
 }
 
-
-# VPC Module
 module "vpc" {
   source = "./vpc"
   depends_on = [null_resource.fail_if_default_workspace]
 }
 
-# ECR Module
 module "ecr" {
   source = "./ecr"
   repository_name = local.ecr_repo_name
   depends_on = [null_resource.fail_if_default_workspace]
 }
 
-# Build container and push it
 resource "null_resource" "build_and_push_image" {
   provisioner "local-exec" {
     command = "bash manage_docker.sh push ${module.ecr.repository_url} ${var.emr_release_label}"
@@ -72,7 +68,6 @@ data "external" "check_image_pushed" {
   depends_on = [null_resource.fail_if_default_workspace, null_resource.build_and_push_image]
 }
 
-# EMR Serverless Module
 module "emr_serverless" {
   source = "./emr"
   name = local.emr_app_name
@@ -87,8 +82,14 @@ module "emr_serverless" {
   depends_on = [null_resource.fail_if_default_workspace, data.external.check_image_pushed]
 }
 
-# Security Groups Module
 module "security_groups" {
   source = "./security_groups"
   vpc_id  = module.vpc.vpc_id
+}
+
+module "s3buckets" {
+  source = "./s3buckets"
+  input_bucket_name  = "veda-pforge-emr-input-scripts-${var.bucket_suffix}"
+  output_bucket_name = "veda-pforge-emr-outputs-${var.bucket_suffix}"
+  account_id         = data.aws_caller_identity.current.account_id
 }

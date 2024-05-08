@@ -1,3 +1,10 @@
+# NOTE: this is commented out for a few reasons
+# 1) TF cannot arbitrarily in-place update trust relationship yet :shrug: even though boto3 has a call for this
+# 2) it's frowned upon to use IaC to update these types of DAAC-approved IAM roles b/c when things get deleted
+# they leave around AWS IDs that have to be deleted or can cause issues on updates. So it's encouraged
+# to make these changes manually
+# 3) leaving here so we know the EXACT policy additions we need
+
 #data "aws_iam_role" "existing_daac_role" {
 #  name = var.daac_reader_rolename
 #}
