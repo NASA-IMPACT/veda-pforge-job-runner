@@ -29,7 +29,7 @@ variable "max_cpu" {
 variable "max_memory" {
   description = "Maximum memory capacity configuration for the EMR Serverless application"
   type        = string
-  default     = "300 GB"
+  default     = "600 GB"
 }
 
 variable "private_subnet_ids" {

@@ -2,8 +2,10 @@
 resource "aws_s3_bucket" "input_bucket" {
   bucket = "${var.input_bucket_name}"
 
-  tags = {
+  ta
+gs = {
     Name        = "Veda PForge EMR Input Scripts"
+    SMCE_Owner  = "gcorradini"
   }
 }
 
@@ -52,6 +54,7 @@ resource "aws_s3_bucket" "output_bucket" {
 
   tags = {
     Name        = "Veda PForge EMR Output Artifacts"
+    SMCE_Owner  = "gcorradini"
   }
 }
 
