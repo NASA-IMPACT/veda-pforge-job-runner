@@ -2,8 +2,7 @@
 resource "aws_s3_bucket" "input_bucket" {
   bucket = "${var.input_bucket_name}"
 
-  ta
-gs = {
+  tags = {
     Name        = "Veda PForge EMR Input Scripts"
     SMCE_Owner  = "gcorradini"
   }
