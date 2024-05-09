@@ -2,21 +2,15 @@ output "ecr_module_repository_url" {
   value       = module.ecr.repository_url
 }
 
-output "input_bucket_arn" {
-  description = "The ARN of the S3 bucket input"
-  value       = aws_s3_bucket.input_bucket.arn
-}
 output "input_bucket_name" {
-  description = "The name of the input S3 bucket"
-  value       = "s3://${aws_s3_bucket.input_bucket.bucket}"
+  value       = module.s3buckets.input_bucket_name
 }
-
-
-output "output_bucket_arn" {
-  description = "The ARN of the S3 bucket output"
-  value       = aws_s3_bucket.output_bucket.arn
+output "input_bucket_arn" {
+  value       = module.s3buckets.input_bucket_arn
 }
 output "output_bucket_name" {
-  description = "The name of the output S3 bucket"
-  value       = "s3://${aws_s3_bucket.output_bucket.bucket}"
+  value       = module.s3buckets.output_bucket_name
+}
+output "output_bucket_arn" {
+  value = module.s3buckets.output_bucket_arn
 }

@@ -55,6 +55,7 @@ elif [ "$1" = "push" ]; then
     EMR_RELEASE_LABEL=$3
 
     build_docker_image "$IMAGE_NAME"
+    # TODO: it cannot validate emr-7.0.0 for some reason so comment out
     #validate_docker_image "$IMAGE_NAME" "$EMR_RELEASE_LABEL"
 
     echo "Tagging Docker image..."

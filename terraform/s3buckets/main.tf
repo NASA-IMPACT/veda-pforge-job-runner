@@ -1,9 +1,11 @@
 ########## INPUT SCRIPT BUCKET ##################
 resource "aws_s3_bucket" "input_bucket" {
-  bucket = "veda-pforge-emr-input-scripts-${var.bucket_suffix}"
+  bucket = "${var.input_bucket_name}"
 
-  tags = {
+  ta
+gs = {
     Name        = "Veda PForge EMR Input Scripts"
+    SMCE_Owner  = "gcorradini"
   }
 }
 
@@ -16,7 +18,7 @@ resource "aws_s3_bucket_policy" "input_bucket_policy" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          AWS = "arn:aws:iam::${var.account_id}:root"
         }
         Action = [
           "s3:Get*",
@@ -38,13 +40,6 @@ resource "aws_s3_bucket_ownership_controls" "input" {
   }
 }
 
-resource "aws_s3_bucket_acl" "input" {
-  depends_on = [aws_s3_bucket_ownership_controls.input]
-
-  bucket = aws_s3_bucket.input_bucket.id
-  acl    = "private"
-}
-
 resource "aws_s3_object" "wrapper_script" {
   bucket = aws_s3_bucket.input_bucket.bucket
   key    = "runwrapper.py"
@@ -55,10 +50,11 @@ resource "aws_s3_object" "wrapper_script" {
 
 ########## PFORGE OUTPUT BUCKET ##################
 resource "aws_s3_bucket" "output_bucket" {
-  bucket = "veda-pforge-emr-outputs-${var.bucket_suffix}"
+  bucket = "${var.output_bucket_name}"
 
   tags = {
     Name        = "Veda PForge EMR Output Artifacts"
+    SMCE_Owner  = "gcorradini"
   }
 }
 
@@ -71,7 +67,7 @@ resource "aws_s3_bucket_policy" "output_bucket_policy" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          AWS = "arn:aws:iam::${var.account_id}:root"
         }
         Action = [
           "s3:*",
@@ -90,11 +86,4 @@ resource "aws_s3_bucket_ownership_controls" "output" {
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
-}
-
-resource "aws_s3_bucket_acl" "output" {
-  depends_on = [aws_s3_bucket_ownership_controls.output]
-
-  bucket = aws_s3_bucket.output_bucket.id
-  acl    = "private"
 }
