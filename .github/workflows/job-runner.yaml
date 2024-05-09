@@ -83,7 +83,7 @@ jobs:
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
-          --entry-point="s3://veda-pforge-emr-input-scripts-v3/runwrapper.py" \
+          --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
           --entry-point-arguments="${{ github.event.inputs.repo }} ${{ github.event.inputs.ref }} ${{ github.event.inputs.feedstock_subdir }}" \
           --spark-submit-parameters="--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=${{ github.event.inputs.ref }} --conf spark.emr-serverless.executor.disk=200G"
       env:
