@@ -1,0 +1,6 @@
+aws_region              = "us-west-2"
+emr_name                = "veda_pforge_emr_test"
+repository_name         = "veda_pforge_emr_serverless"
+emr_release_label       = "emr-7.0.0"
+execution_role_template = "./emr/execution_role.json.tpl"
+bucket_suffix           = "v4"

@@ -1,23 +1,15 @@
 ## veda-pforge-job-runner
-Apache Beam + Flink Job Runner for Pangeo Forge Recipes
+EMR Serverless + Apache Beam Job Runner
+
 
 ---
 
 ### Getting Started
 
-After getting invited to this private repo you can do the following:
-
 1. Create a [personal access token in Github](https://docs.github.com/en/enterprise-server@3.9/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the "workflow" scope
 
-2. Construct a JSON snippet that describes the recipe inputs you want to run like the example below (this example actually describes the integration tests). We'll pass this to GH Actions in future examples below via a `curl` POST.
 
-    ```bash
-    # NOTE that any arguments for your recipe run will be added to the `inputs` hash
-    # The first-level `ref` below refers to which branch in this GH repositry we want to run things against 
-    '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"1"}}'
-    ```
-   
-3. Note that `.github/workflows/job-runner.yaml` in this repository describes the allowed inputs and defaults. Currently the only non-defaulted input is `repo` which is required. In the future we'll allow you to pass different `bucket` arguments but best to use the default for now
+2. To kick off jobs on GH you'll need to provide inputs. Note that `.github/workflows/job-runner.yaml` in this repository describes the allowed inputs and defaults. Currently, the only non-defaulted required inputs are `repo` and `job_name`:
 
     ```yaml
     on:
@@ -34,27 +26,27 @@ After getting invited to this private repo you can do the following:
             description: 'The subdir of the feedstock directory in the repo'
             required: true
             default: 'feedstock'
-          bucket:
-            description: 'This job runner leverages s3fs.S3FileSystem for your recipe cache and output. Choices currently are: "default"'
-            required: true
-            default: 'default'
-          prune:
-            description: 'Only run the first two time steps'
-            required: true
-            default: '0'
           parallelism:
-            description: 'Number of task managers to spin up'
+            description: 'Number of partitions to divide the the Spark RDD into (usually equals [num-of-executors]*[num-of-vcpus])'
             required: true
-            default: '1'
+            default: '48'
     ```
 
-4. Trigger your workflow
+#### Manual Trigger Option:
 
-    1. **Option 1:** Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left-hand navigation, under "Actions". The current job name is "dispatch job". Since the "dispatch job" workflow has a `workflow_dispatch` trigger, you can select "Run workflow" and use the form to input suitable options.
+3. Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left-hand navigation, under "Actions". The current job name is "dispatch job". Since the "dispatch job" workflow has a `workflow_dispatch` trigger, you can select "Run workflow" and use the form to input suitable options.
+ 
+#### Curl Trigger Option:
 
-    <img width="394" alt="Screenshot 2024-01-29 at 12 29 04 PM" src="https://github.com/NASA-IMPACT/veda-pforge-job-runner/assets/15016780/0d2420f9-7fd0-45fd-a8e0-123d72c4d6af">
+3. Construct a JSON snippet that describes the recipe inputs you want to run like the example below (this example actually describes the integration tests). We'll pass this to GH Actions in future examples below via a `curl` POST.
 
-    2. **Option 2:** Fire off a `curl` command to Github. Replace `<your-PAT-here>` with the one you created in step one above. And replace `<your-JSON-snippet-here>` with the one you created in step two above:
+    ```bash
+    # NOTE that any arguments for your recipe run will be added to the `inputs` hash
+    # The first-level `ref` below refers to which branch in this GH repositry we want to run things against 
+    '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3"}}'
+    ```
+
+4. Fire off a `curl` command to Github. Replace `<your-PAT-here>` with the one you created in step one above. And replace `<your-JSON-snippet-here>` with the one you created in step two above:
 
     ```bash
        curl -X POST \
@@ -72,12 +64,12 @@ After getting invited to this private repo you can do the following:
          -H "X-GitHub-Api-Version: 2022-11-28" \
          -H "Authorization: token blahblah" \
          https://api.github.com/repos/NASA-IMPACT/veda-pforge-job-runner/actions/workflows/job-runner.yaml/dispatches \
-         -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3","prune":"1"}}'
+         -d '{"ref":"main", "inputs":{"repo":"https://github.com/pforgetest/gpcp-from-gcs-feedstock.git","ref":"0.10.3"}}'
     ```
 
-6. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
+5. Head to this repository's [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions)
 
-7. If multiple jobs are running you can get help finding your job using the "Actor" filter
+6. If multiple jobs are running you can get help finding your job using the "Actor" filter
 
 ![](docs/img/xfilter_job.png)
 
