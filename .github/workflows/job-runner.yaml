@@ -72,13 +72,16 @@ jobs:
           ${{ github.event.inputs.feedstock_subdir}} \
           ${{ github.event.inputs.parallelism }}
 
+    - name: pip install requirements
+      run: |
+        pip install boto3 tenacity
+
     - name: submit job to EMR serverless
       id: executejob
       continue-on-error: true
       run: |
         # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
         # before submission
-        pip install boto3
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
