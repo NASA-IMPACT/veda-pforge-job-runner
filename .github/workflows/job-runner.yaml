@@ -79,7 +79,7 @@ jobs:
         # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
         # before submission
 
-        python submit_spark_job.py \
+        python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
