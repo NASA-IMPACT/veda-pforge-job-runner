@@ -8,8 +8,9 @@ client = boto3.client('emr-serverless')
 
 @retry(wait=wait_exponential(multiplier=1, max=60), stop=stop_after_delay(300))
 def block_on_app_state(application_id):
-    resp = json.loads(client.get_application(applicationId=application_id))
+    resp = client.get_application(applicationId=application_id)
     if resp.get('application').get('state') != 'STARTED':
+        print("retrying...")
         raise Exception("retrying...")
     else:
         print("Application has started and we can submit the job now")
