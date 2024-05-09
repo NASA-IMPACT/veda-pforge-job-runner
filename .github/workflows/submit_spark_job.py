@@ -25,7 +25,8 @@ def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_a
     )
     return response
 
-def main():
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start a Spark job on EMR Serverless.')
 
     parser.add_argument('--application-id', required=True, help='Application ID for the EMR Serverless application')
@@ -54,6 +55,3 @@ def main():
 
     print("Job started successfully. Response:")
     print(response)
-
-if __name__ == '__main__':
-    main()
