@@ -51,7 +51,7 @@ jobs:
     - name: checkout repository
       uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
+    - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v3
       with:
         role-to-assume: arn:aws:iam::444055461661:role/github-actions-role-eodc
@@ -66,7 +66,7 @@ jobs:
 
     - name: echo inputs to user
       run: |
-        echo "Manually triggered workflow:  \
+        echo "Manually triggered workflow":  \
           ${{ github.event.inputs.repo }} \
           ${{ github.event.inputs.ref }} \
           ${{ github.event.inputs.feedstock_subdir}} \
