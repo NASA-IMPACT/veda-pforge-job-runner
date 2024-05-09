@@ -78,7 +78,7 @@ jobs:
       run: |
         # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
         # before submission
-
+        pip install boto3
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
