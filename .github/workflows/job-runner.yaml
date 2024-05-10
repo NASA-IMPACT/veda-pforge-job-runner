@@ -14,10 +14,10 @@ on:
         description: 'The subdir of the feedstock directory in the repo'
         required: true
         default: 'feedstock'
-      parallelism:
-        description: 'Number of partitions to divide the the Spark RDD into (usually equals [num-of-executors]*[num-of-vcpus])'
+      spark_params:
+        description: 'space delimited --conf values: https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/jobs-spark.html'
         required: true
-        default: '1280'
+        default: '--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=1280 --conf spark.emr-serverless.executor.disk=200G'
       job_name:
         description: 'Name the EMR job'
         required: true
@@ -72,20 +72,23 @@ jobs:
           ${{ github.event.inputs.feedstock_subdir}} \
           ${{ github.event.inputs.parallelism }}
 
-    - name: submit job to EMR serverless
+    - name: pip install requirements
+      run: |
+        pip install boto3 tenacity
+
+    - name: submit job to emr serverless
       id: executejob
       continue-on-error: true
       run: |
         # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
         # before submission
-        pip install boto3
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
           --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
           --entry-point-arguments="${{ github.event.inputs.repo }} ${{ github.event.inputs.ref }} ${{ github.event.inputs.feedstock_subdir }}" \
-          --spark-submit-parameters="--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=${{ github.event.inputs.ref }} --conf spark.emr-serverless.executor.disk=200G"
+          --spark-submit-parameters="${{ github.event.inputs.spark_params }}"
       env:
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
