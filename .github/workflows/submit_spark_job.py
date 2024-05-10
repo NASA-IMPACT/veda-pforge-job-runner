@@ -2,6 +2,7 @@ import argparse
 import boto3
 import json
 import time
+from uuid import uuid4
 from tenacity import retry, stop_after_delay, wait_exponential
 
 client = boto3.client('emr-serverless')
@@ -32,9 +33,10 @@ def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_a
     client.start_application(applicationId=application_id)
     block_on_app_state(application_id)
 
+    idempotency_token = str(uuid4())
     response = client.start_job_run(
         applicationId=application_id,
-        clientToken='token',  # Generate a unique token here if needed
+        clientToken=idempotency_token,
         executionRoleArn=execution_role_arn,
         jobDriver=job_driver,
         configurationOverrides=configuration_overrides,
