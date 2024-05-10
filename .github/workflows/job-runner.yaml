@@ -88,7 +88,7 @@ jobs:
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
           --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
           --entry-point-arguments="${{ github.event.inputs.repo }} ${{ github.event.inputs.ref }} ${{ github.event.inputs.feedstock_subdir }}" \
-          --spark-submit-parameters=${{ github.event.inputs.spark_params }}
+          --spark-submit-parameters="${{ github.event.inputs.spark_params }}"
       env:
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}
