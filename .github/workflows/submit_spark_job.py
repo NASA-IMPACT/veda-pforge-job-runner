@@ -15,7 +15,7 @@ def block_on_app_state(application_id):
         raise Exception("retrying...")
     else:
         # even after reaching STARTED state sometimes SubmitJobRun seems to fail
-        time.sleep(15)
+        time.sleep(10)
         print("Application has started and we can submit the job now")
 
 
