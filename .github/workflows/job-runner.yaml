@@ -17,7 +17,7 @@ on:
       spark_params:
         description: 'space delimited --conf values: https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/jobs-spark.html'
         required: true
-        default: '--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=1280 --conf spark.emr-serverless.executor.disk=200G'
+        default: '--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=1280 --conf spark.emr-serverless.executor.disk=200G --conf spark.hadoop.hive.metastore.client.factory.class=com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory --conf spark.emr-serverless.driverEnv.JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64/ --conf spark.executorEnv.JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64/'
       job_name:
         description: 'Name the EMR job'
         required: true
