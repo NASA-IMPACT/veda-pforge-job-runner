@@ -1,6 +1,7 @@
 import argparse
 import boto3
 import json
+import time
 from tenacity import retry, stop_after_delay, wait_exponential
 
 client = boto3.client('emr-serverless')
@@ -13,6 +14,8 @@ def block_on_app_state(application_id):
         print("retrying...")
         raise Exception("retrying...")
     else:
+        # even after reaching STARTED state sometimes SubmitJobRun seems to fail
+        time.sleep(15)
         print("Application has started and we can submit the job now")
 
 
