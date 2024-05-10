@@ -12,24 +12,27 @@ EMR Serverless + Apache Beam Job Runner
 2. To kick off jobs on GH you'll need to provide inputs. Note that `.github/workflows/job-runner.yaml` in this repository describes the allowed inputs and defaults. Currently, the only non-defaulted required inputs are `repo` and `job_name`:
 
     ```yaml
-    on:
-      workflow_dispatch:
-        inputs:
-          repo:
-            description: 'The https github url for the recipe feedstock'
-            required: true
-          ref:
-            description: 'The tag or branch to target in your recipe repo'
-            required: true
-            default: 'main'
-          feedstock_subdir:
-            description: 'The subdir of the feedstock directory in the repo'
-            required: true
-            default: 'feedstock'
-          parallelism:
-            description: 'Number of partitions to divide the the Spark RDD into (usually equals [num-of-executors]*[num-of-vcpus])'
-            required: true
-            default: '48'
+   on:
+     workflow_dispatch:
+       inputs:
+         repo:
+           description: 'The https github url for the recipe feedstock'
+           required: true
+         ref:
+           description: 'The tag or branch to target in your recipe repo'
+           required: true
+           default: 'main'
+         feedstock_subdir:
+           description: 'The subdir of the feedstock directory in the repo'
+           required: true
+           default: 'feedstock'
+         spark_params:
+           description: 'space delimited --conf values: https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/jobs-spark.html'
+           required: true
+           default: '--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=1280 --conf spark.emr-serverless.executor.disk=200G'
+         job_name:
+           description: 'Name the EMR job'
+           required: true
     ```
 
 #### Manual Trigger Option:
