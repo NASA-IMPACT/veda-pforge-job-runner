@@ -81,8 +81,7 @@ jobs:
     - name: install zip
       uses: montudor/action-zip@v1
 
-    - name: submit job to emr serverless
-      id: executejob
+    - name: build recipe requirements and zip
       continue-on-error: true
       run: |
         # build site-packages.zip from job requirements
@@ -91,6 +90,13 @@ jobs:
           "${{ github.event.inputs.ref }}" \
           "${{ github.event.inputs.feedstock_subdir }}"
 
+        $SITEPKGNAME=$(basename .github/*.zip)
+        echo "FROM: .github/$SITEPKGNAME"
+
+    - name: submit job to emr serverless
+      id: executejob
+      continue-on-error: true
+      run: |
         # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
         $SITEPKGNAME=$(basename .github/*.zip)
         echo "FROM: .github/$SITEPKGNAME"

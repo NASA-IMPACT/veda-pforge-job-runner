@@ -17,11 +17,10 @@ resource "aws_s3_bucket_policy" "input_bucket_policy" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = "${var.daac_reader_arn}"
+          AWS = ["${var.daac_reader_arn}", "arn:aws:iam::444055461661:role/github-actions-role-eodc"]
         }
         Action = [
-          "s3:Get*",
-          "s3:List*"
+          "s3:*",
         ]
         Resource = [
           "${aws_s3_bucket.input_bucket.arn}",
