@@ -78,6 +78,9 @@ jobs:
           ${{ github.event.inputs.feedstock_subdir}} \
           ${{ github.event.inputs.parallelism }}
 
+    - name: install zip
+      uses: montudor/action-zip@v1
+
     - name: submit job to emr serverless
       id: executejob
       continue-on-error: true

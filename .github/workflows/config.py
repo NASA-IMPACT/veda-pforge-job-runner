@@ -35,7 +35,7 @@ def zip_site_packages(env_root_path: pathlib.Path, requirements_hash_digest):
     if result.returncode == 0:
         logger.info("Successfully zipped the directory")
     else:
-        logger.info("Failed to zip the directory:", result.stderr)
+        logger.info(f"Failed to zip the directory: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
 
 
 @contextmanager
