@@ -93,8 +93,7 @@ jobs:
     - name: submit job to emr serverless
       id: executejob
       continue-on-error: true
-      r
-      un: |
+      run: |
         # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
         SITEPKGNAME=$(basename .github/*.zip)
         echo "FROM: .github/$SITEPKGNAME"
