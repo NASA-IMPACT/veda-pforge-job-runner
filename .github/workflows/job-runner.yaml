@@ -84,9 +84,9 @@ jobs:
       run: |
         # build site-packages.zip from job requirements
         python .github/workflows/config.py \
-          --repo="${{ github.event.inputs.repo }}" \
-          --ref="${{ github.event.inputs.ref }}" \
-          --feedstock_subdir="${{ github.event.inputs.feedstock_subdir }}"
+          "${{ github.event.inputs.repo }}" \
+          "${{ github.event.inputs.ref }}" \
+          "${{ github.event.inputs.feedstock_subdir }}"
 
         # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
         $SITEPKGNAME=$(basename .github/*.zip)
