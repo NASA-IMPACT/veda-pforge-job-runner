@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import pathlib
 import subprocess
 import tempfile
 import os
@@ -23,21 +24,8 @@ def hash_requirements(file_path):
     return hasher.hexdigest()
 
 
-def get_user_site_package_dir():
-    result = subprocess.run(
-        ["python", "-m", "site", "--user-site"],
-        capture_output=True,
-        text=True
-    )
-
-    if result.returncode == 0:
-        return result.stdout.strip()
-    else:
-        raise Exception("Failed to get user site-packages directory: " + result.stderr.strip() + "|" + result.stdout.strip())
-
-
-def zip_site_packages(requirements_hash_digest):
-    user_site_dir = get_user_site_package_dir()
+def zip_site_packages(env_root_path: pathlib.Path, requirements_hash_digest):
+    user_site_dir = str(env_root_path / 'lib' / 'python3.10' / 'site-packages')
     logger.debug("User site-packages directory:", user_site_dir)
     os.chdir(user_site_dir)
     zip_path = f".github/site-packages-{requirements_hash_digest}.zip"
@@ -76,7 +64,7 @@ def main(repo: str, ref: str, feedstock_subdir: str) -> None:
     with checkout(repo, ref) as checkout_dir:
         requirements_path = Path(checkout_dir) / feedstock_subdir / "requirements.txt"
         digest = hash_requirements(str(requirements_path))
-        with venv(requirements_path):
+        with venv(requirements_path) as env_path:
             # in the `venv` context manager, all dynamic recipe requirements should
             # be installed in an activated virtualenv.
             # Here, we check that all dependencies are available and
@@ -90,7 +78,7 @@ def main(repo: str, ref: str, feedstock_subdir: str) -> None:
                 raise ValueError(
                     f"The packages {missing_deps} must be listed in your recipe's requirements.txt"
                 )
-            zip_site_packages(digest)
+            zip_site_packages(env_path, digest)
 
 
 if __name__ == "__main__":
