@@ -29,7 +29,11 @@ def zip_site_packages(env_root_path: pathlib.Path, requirements_hash_digest):
     user_site_dir = str(user_site_dir)
     logger.debug(f"User site-packages directory: {user_site_dir}")
     os.chdir(user_site_dir)
-    zip_path = f".github/site-packages-{requirements_hash_digest}.zip"
+    result = subprocess.run(["ls", "-lah"], capture_output=True, text=True)
+    logger.info(f"site-packages: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
+
+    gh_actions_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    zip_path = os.path.join(gh_actions_folder, f"site-packages-{requirements_hash_digest}.zip")
     zip_command = ["zip", "-r", zip_path, "."]
     result = subprocess.run(zip_command, capture_output=True, text=True)
     if result.returncode == 0:

@@ -4,6 +4,10 @@ import json
 import time
 from uuid import uuid4
 from tenacity import retry, stop_after_delay, wait_exponential
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 client = boto3.client('emr-serverless')
 
@@ -12,12 +16,12 @@ client = boto3.client('emr-serverless')
 def block_on_app_state(application_id):
     resp = client.get_application(applicationId=application_id)
     if resp.get('application').get('state') != 'STARTED':
-        print("retrying...")
+        logger.debug("retrying...")
         raise Exception("retrying...")
     else:
         # even after reaching STARTED state sometimes SubmitJobRun seems to fail
         time.sleep(10)
-        print("Application has started and we can submit the job now")
+        logger.debug("Application has started and we can submit the job now")
 
 
 def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_arguments, spark_submit_params, configuration_overrides, tags, execution_timeout, name):
@@ -74,5 +78,5 @@ if __name__ == '__main__':
         name=args.name
     )
 
-    print("Job started successfully. Response:")
-    print(response)
+    logger.debug("Job started successfully. Response:")
+    logger.debug(response)
