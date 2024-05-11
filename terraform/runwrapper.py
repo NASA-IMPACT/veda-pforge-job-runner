@@ -38,22 +38,6 @@ def checkout(repo: str, ref:str) -> Generator[str, None, None]:
 
 def main(repo: str, ref: str, feedstock_subdir: str) -> None:
     with checkout(repo, ref) as checkout_dir:
-        # TODO: possibly build a virtualenv and then package it up and push to s3 for the runner
-        # with venv(Path(checkout_dir) / feedstock_subdir / "requirements.txt"):
-        #     # in the `venv` context manager, all dynamic recipe requirements should
-        #     # be installed in an activated virtualenv.
-        #     # Here, we check that all dependencies are available and
-        #     # alert if deps in requirements.txt are missing things
-        #     from importlib.metadata import distributions
-        #
-        #     deps_set = {"pangeo-forge-recipes", "fsspec", "apache-beam"}
-        #     dist_set = {d.metadata["Name"] for d in distributions()}
-        #     missing_deps = deps_set - dist_set
-        #     if missing_deps:
-        #         raise ValueError(
-        #             f"To use the 'bake' command, the packages {missing_deps} must be listed in your recipe's requirements.txt"
-        #         )
-        #
         cmd = [
             "python3",
             str(Path(checkout_dir) / feedstock_subdir / "recipe.py")

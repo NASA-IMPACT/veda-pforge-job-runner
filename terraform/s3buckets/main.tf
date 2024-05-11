@@ -17,7 +17,7 @@ resource "aws_s3_bucket_policy" "input_bucket_policy" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${var.account_id}:root"
+          AWS = "${var.daac_reader_arn}"
         }
         Action = [
           "s3:Get*",
@@ -66,7 +66,7 @@ resource "aws_s3_bucket_policy" "output_bucket_policy" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${var.account_id}:root"
+          AWS = "${var.daac_reader_arn}"
         }
         Action = [
           "s3:*",

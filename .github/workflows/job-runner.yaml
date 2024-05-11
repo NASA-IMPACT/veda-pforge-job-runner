@@ -14,6 +14,10 @@ on:
         description: 'The subdir of the feedstock directory in the repo'
         required: true
         default: 'feedstock'
+      site_pkg_s3_bucket:
+        description: 'The bucket (set up by TF) to stash dyamically created site-package.zip of your recipe requirements.txt for each run'
+        required: true
+        default: 's3://veda-pforge-emr-input-scripts-v4'
       spark_params:
         description: 'space delimited --conf values: https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/jobs-spark.html'
         required: true
@@ -59,10 +63,12 @@ jobs:
         role-duration-seconds: 3600
         aws-region: us-west-2
 
-    - name: set up python 3.10
+    - name: set up python 3.10 and cache pip deps
       uses: actions/setup-python@v3
       with:
         python-version: '3.10'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r .github/workflows/requirements.txt
 
     - name: echo inputs to user
       run: |
@@ -72,23 +78,33 @@ jobs:
           ${{ github.event.inputs.feedstock_subdir}} \
           ${{ github.event.inputs.parallelism }}
 
-    - name: pip install requirements
-      run: |
-        pip install boto3 tenacity
-
     - name: submit job to emr serverless
       id: executejob
       continue-on-error: true
       run: |
-        # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
-        # before submission
+        # build site-packages.zip from job requirements
+        python .github/workflows/config.py \
+          --repo="${{ github.event.inputs.repo }}" \
+          --ref="${{ github.event.inputs.ref }" \
+          --feedstock_subdir="${{ github.event.inputs.feedstock_subdir }}"
+
+        # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
+        $SITEPKGNAME=$(basename .github/*.zip)
+        echo "FROM: .github/$SITEPKGNAME"
+        $S3PATH="${{ github.event.inputs.site_pkg_s3_bucket }}/$SITEPKGNAME"
+        echo "TO: $S3PATH"
+        aws s3 cp .github/$SITEPKGNAME  $S3PATH
+
+        # concat our new site-package s3 path to spark parameters
+        $SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.submit.pyFiles=$S3PATH"
+
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
           --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
           --entry-point-arguments="${{ github.event.inputs.repo }} ${{ github.event.inputs.ref }} ${{ github.event.inputs.feedstock_subdir }}" \
-          --spark-submit-parameters="${{ github.event.inputs.spark_params }}"
+          --spark-submit-parameters="$SPARKPARMS"
       env:
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}

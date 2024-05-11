@@ -92,9 +92,10 @@ module "security_groups" {
 
 module "s3buckets" {
   source = "./s3buckets"
-  input_bucket_name  = "veda-pforge-emr-input-scripts-${var.bucket_suffix}"
-  output_bucket_name = "veda-pforge-emr-outputs-${var.bucket_suffix}"
-  account_id         = data.aws_caller_identity.current.account_id
+  input_bucket_name    = "veda-pforge-emr-input-scripts-${var.bucket_suffix}"
+  output_bucket_name   = "veda-pforge-emr-outputs-${var.bucket_suffix}"
+  account_id           = data.aws_caller_identity.current.account_id
+  daac_reader_arn      = var.daac_blessed_execution_role_arn
   depends_on = [null_resource.fail_if_default_workspace]
 }
 
