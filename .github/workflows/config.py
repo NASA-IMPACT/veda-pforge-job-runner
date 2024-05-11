@@ -33,7 +33,7 @@ def get_user_site_package_dir():
     if result.returncode == 0:
         return result.stdout.strip()
     else:
-        raise Exception("Failed to get user site-packages directory: " + result.stderr.strip())
+        raise Exception("Failed to get user site-packages directory: " + result.stderr.strip() + "|" + result.stdout.strip())
 
 
 def zip_site_packages(requirements_hash_digest):
