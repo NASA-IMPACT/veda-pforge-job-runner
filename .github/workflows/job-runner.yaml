@@ -90,13 +90,11 @@ jobs:
           "${{ github.event.inputs.ref }}" \
           "${{ github.event.inputs.feedstock_subdir }}"
 
-        SITEPKGNAME=$(basename .github/*.zip)
-        echo "FROM: .github/$SITEPKGNAME"
-
     - name: submit job to emr serverless
       id: executejob
       continue-on-error: true
-      run: |
+      r
+      un: |
         # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
         SITEPKGNAME=$(basename .github/*.zip)
         echo "FROM: .github/$SITEPKGNAME"
@@ -105,7 +103,7 @@ jobs:
         aws s3 cp .github/$SITEPKGNAME  $S3PATH
 
         # concat our new site-package s3 path to spark parameters
-        $SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.submit.pyFiles=$S3PATH"
+        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.submit.pyFiles=$S3PATH"
 
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
