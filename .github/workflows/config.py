@@ -25,8 +25,9 @@ def hash_requirements(file_path):
 
 
 def zip_site_packages(env_root_path: pathlib.Path, requirements_hash_digest):
-    user_site_dir = str(env_root_path / 'lib' / 'python3.10' / 'site-packages')
-    logger.debug("User site-packages directory:", user_site_dir)
+    user_site_dir = env_root_path / 'lib' / 'python3.10' / 'site-packages'
+    user_site_dir = str(user_site_dir)
+    logger.debug(f"User site-packages directory: {user_site_dir}")
     os.chdir(user_site_dir)
     zip_path = f".github/site-packages-{requirements_hash_digest}.zip"
     zip_command = ["zip", "-r", zip_path, "."]
