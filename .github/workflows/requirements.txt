@@ -3,5 +3,6 @@ s3fs
 boto3
 tenacity
 requests
+venv-pack
 venvception>=0.0.5
 jupyter-repo2docker

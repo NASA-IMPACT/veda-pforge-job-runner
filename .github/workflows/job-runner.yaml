@@ -81,10 +81,10 @@ jobs:
     - name: install zip
       uses: montudor/action-zip@v1
 
-    - name: build recipe requirements and zip
+    - name: build recipe requirements and tarball
       continue-on-error: true
       run: |
-        # build site-packages.zip from job requirements
+        # build venv-<hash>.tar.gz from job requirements
         python .github/workflows/config.py \
           "${{ github.event.inputs.repo }}" \
           "${{ github.event.inputs.ref }}" \
@@ -94,15 +94,18 @@ jobs:
       id: executejob
       continue-on-error: true
       run: |
-        # pick up the site-packages.zip output of config.py above at `.github/site-packages-<hashdigest>.zip`
-        SITEPKGNAME=$(basename .github/*.zip)
-        echo "FROM: .github/$SITEPKGNAME"
+        # pick up the site-packages.zip output of config.py above at `.github/venv-<hashdigest>.tar.gz`
+        SITEPKGNAME=$(basename .github/*.tar.gz)
         S3PATH="${{ github.event.inputs.site_pkg_s3_bucket }}/$SITEPKGNAME"
+        echo "FROM: .github/$SITEPKGNAME"
         echo "TO: $S3PATH"
         aws s3 cp .github/$SITEPKGNAME  $S3PATH
 
-        # concat our new site-package s3 path to spark parameters
-        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.submit.pyFiles=$S3PATH"
+        # concat our new venv s3 path to spark parameters
+        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.archives=$S3PATH#environment"
+        SPARKPARMS="$SPARKPARAMS --conf spark.emr-serverless.driverEnv.PYSPARK_DRIVER_PYTHON=./environment/bin/python"
+        SPARKPARMS="$SPARKPARAMS --conf spark.emr-serverless.driverEnv.PYSPARK_PYTHON=./environment/bin/python"
+        SPARKPARMS="$SPARKPARAMS --conf spark.executorEnv.PYSPARK_PYTHON=./environment/bin/python"
 
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \

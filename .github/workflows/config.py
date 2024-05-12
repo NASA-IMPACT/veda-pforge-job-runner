@@ -24,22 +24,14 @@ def hash_requirements(file_path):
     return hasher.hexdigest()
 
 
-def zip_site_packages(env_root_path: pathlib.Path, requirements_hash_digest):
-    user_site_dir = env_root_path / 'lib' / 'python3.10' / 'site-packages'
-    user_site_dir = str(user_site_dir)
-    logger.debug(f"User site-packages directory: {user_site_dir}")
-    os.chdir(user_site_dir)
-    result = subprocess.run(["ls", "-lah"], capture_output=True, text=True)
-    logger.info(f"site-packages: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
-
+def tar_site_packages(requirements_hash_digest):
     gh_actions_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-    zip_path = os.path.join(gh_actions_folder, f"site-packages-{requirements_hash_digest}.zip")
-    zip_command = ["zip", "-r", zip_path, "."]
-    result = subprocess.run(zip_command, capture_output=True, text=True)
+    tzpath = os.path.join(gh_actions_folder, f"venv-{requirements_hash_digest}.tar.gz")
+    result = subprocess.run(["venv-pack", "-f", "-o", tzpath],capture_output=True, text=True)
     if result.returncode == 0:
-        logger.info("Successfully zipped the directory")
+        logger.info("Successfully tar'd venv")
     else:
-        logger.info(f"Failed to zip the directory: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
+        logger.info(f"Failed to tar the venv: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
 
 
 @contextmanager
@@ -83,7 +75,7 @@ def main(repo: str, ref: str, feedstock_subdir: str) -> None:
                 raise ValueError(
                     f"The packages {missing_deps} must be listed in your recipe's requirements.txt"
                 )
-            zip_site_packages(env_path, digest)
+            tar_site_packages(digest)
 
 
 if __name__ == "__main__":
