@@ -1,4 +1,6 @@
 import argparse
+import datetime
+
 import boto3
 import json
 import time
@@ -51,6 +53,26 @@ def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_a
     return response
 
 
+def get_job_run_url(application_id):
+    created_after = datetime.datetime.now() - datetime.timedelta(minutes=5)
+    job_runs = client.list_job_runs(
+        applicationId=application_id,
+        maxResults=5,
+        createdAtAfter=created_after,
+    )
+
+    if len(job_runs['jobRuns']) > 0:
+        sorted_job_runs = sorted(job_runs['jobRuns'], key=lambda x: x["createdAt"], reverse=True)
+        logger.debug(f"[ JOB ID ]: {sorted_job_runs[0]['id']}")
+        job_run = client.get_dashboard_for_job_run(
+            applicationId=application_id,
+            jobRunId=sorted_job_runs[0]['id']
+        )
+        logger.debug(f"[ DASHBOARD URL ]: {job_run}")
+    else:
+        logger.debug(f"No job runs found createdAtAfter={created_after}")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start a Spark job on EMR Serverless.')
 
@@ -63,20 +85,24 @@ if __name__ == '__main__':
     parser.add_argument('--tags', type=json.loads, default={}, help='JSON string for tags')
     parser.add_argument('--execution-timeout', type=int, default=123, help='Execution timeout in minutes')
     parser.add_argument('--name', required=True, help='Name for the job run')
+    parser.add_argument('--workflow', type=str, default="startjob", help='which workflow to run startjob or getjob')
 
     args = parser.parse_args()
 
-    response = start_emr_job(
-        application_id=args.application_id,
-        execution_role_arn=args.execution_role_arn,
-        entry_point=args.entry_point,
-        entry_point_arguments=args.entry_point_arguments,
-        spark_submit_params=args.spark_submit_parameters,
-        configuration_overrides=args.configuration_overrides,
-        tags=args.tags,
-        execution_timeout=args.execution_timeout,
-        name=args.name
-    )
+    if args.workflow == "startjob":
+        response = start_emr_job(
+            application_id=args.application_id,
+            execution_role_arn=args.execution_role_arn,
+            entry_point=args.entry_point,
+            entry_point_arguments=args.entry_point_arguments,
+            spark_submit_params=args.spark_submit_parameters,
+            configuration_overrides=args.configuration_overrides,
+            tags=args.tags,
+            execution_timeout=args.execution_timeout,
+            name=args.name
+        )
 
-    logger.debug("Job started successfully. Response:")
-    logger.debug(response)
+        logger.debug("Job started successfully. Response:")
+        logger.debug(response)
+    elif args.workflow == "getjob":
+        get_job_run_url(args.application_id)
