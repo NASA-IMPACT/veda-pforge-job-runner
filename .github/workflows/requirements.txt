@@ -1,0 +1,9 @@
+# these requirements are for the config.py and submit_spark_job.py that helps package recipe requirements for EMR job runs
+s3fs
+boto3
+tenacity
+requests
+venv-pack
+#venvception>=0.0.5
+git+https://github.com/moradology/venvception@ranchodeluxe-patch-1
+jupyter-repo2docker

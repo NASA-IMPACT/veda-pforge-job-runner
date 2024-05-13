@@ -19,3 +19,9 @@ variable "daac_reader_rolename" {
   type        = string
   default     = ""
 }
+
+variable "daac_reader_arn" {
+  description = "the arn AWS account that everyone within that account assume to read from DAACs"
+  type        = string
+  default     = ""
+}

@@ -7,6 +7,7 @@ RUN yum update -y && yum install -y git
 
 RUN pip3 install \
   s3fs \
+  gcsfs \
   boto3 \
   requests \
   apache-beam==2.53.0 \

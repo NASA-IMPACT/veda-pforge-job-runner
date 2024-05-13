@@ -23,6 +23,11 @@ variable "execution_role_template" {
   type        = string
 }
 
+variable "daac_blessed_execution_role_arn" {
+  description = "Most NASA AWS accounts have an AWS IAM role that has DAAC access, for these cases this will be the EMR excuetion role"
+  type        = string
+}
+
 variable "bucket_suffix" {
   description = "suffix to add to s3 buckets so they are unique"
   type        = string
