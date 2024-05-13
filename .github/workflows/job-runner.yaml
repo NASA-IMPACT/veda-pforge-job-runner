@@ -102,10 +102,7 @@ jobs:
         aws s3 cp .github/$SITEPKGNAME  $S3PATH
 
         # concat our new venv s3 path to spark parameters
-        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.archives=$S3PATH#environment"
-        SPARKPARMS="$SPARKPARAMS --conf spark.emr-serverless.driverEnv.PYSPARK_DRIVER_PYTHON=./environment/bin/python"
-        SPARKPARMS="$SPARKPARAMS --conf spark.emr-serverless.driverEnv.PYSPARK_PYTHON=./environment/bin/python"
-        SPARKPARMS="$SPARKPARAMS --conf spark.executorEnv.PYSPARK_PYTHON=./environment/bin/python"
+        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.archives=$S3PATH#environment --conf spark.emr-serverless.driverEnv.PYSPARK_DRIVER_PYTHON=./environment/bin/python --conf spark.emr-serverless.driverEnv.PYSPARK_PYTHON=./environment/bin/python --conf spark.executorEnv.PYSPARK_PYTHON=./environment/bin/python"
 
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
