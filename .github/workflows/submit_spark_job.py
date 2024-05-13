@@ -7,7 +7,7 @@ import time
 from uuid import uuid4
 from tenacity import retry, stop_after_delay, wait_exponential
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -18,23 +18,23 @@ client = boto3.client('emr-serverless')
 def block_on_app_state(application_id):
     resp = client.get_application(applicationId=application_id)
     if resp.get('application').get('state') != 'STARTED':
-        logger.debug("retrying...")
+        logger.info("retrying...")
         raise Exception("retrying...")
     else:
         # even after reaching STARTED state sometimes SubmitJobRun seems to fail
         time.sleep(10)
-        logger.debug("Application has started and we can submit the job now")
+        logger.info("Application has started and we can submit the job now")
 
 
 @retry(wait=wait_exponential(multiplier=1, max=60), stop=stop_after_delay(300))
 def block_on_job_state(application_id, job_id):
     resp = client.get_job_run(applicationId=application_id, jobRunId=job_id)
     if resp.get('jobRun').get('state') != 'RUNNING':
-        logger.debug("retrying...")
+        logger.info("retrying...")
         raise Exception("retrying...")
     else:
         time.sleep(10)
-        logger.debug("Job is RUNNING and we can get dashboard URL now")
+        logger.info("Job is RUNNING and we can get dashboard URL now")
 
 
 def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_arguments, spark_submit_params, configuration_overrides, tags, execution_timeout, name):
@@ -75,7 +75,7 @@ def get_job_run_url(application_id):
     if len(job_runs['jobRuns']) > 0:
         sorted_job_runs = sorted(job_runs['jobRuns'], key=lambda x: x["createdAt"], reverse=True)
         job_id = sorted_job_runs[0]['id']
-        logger.debug(f"[ JOB ID ]: {job_id}")
+        logger.info(f"[ JOB ID ]: {job_id}")
 
         block_on_job_state(application_id, job_id)
 
@@ -83,9 +83,9 @@ def get_job_run_url(application_id):
             applicationId=application_id,
             jobRunId=job_id
         )
-        logger.debug(f"[ DASHBOARD URL ]: {job_run}")
+        logger.info(f"[ DASHBOARD URL ]: {job_run}")
     else:
-        logger.debug(f"No job runs found createdAtAfter={created_after}")
+        logger.info(f"No job runs found createdAtAfter={created_after}")
 
 
 if __name__ == '__main__':
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             name=args.name
         )
 
-        logger.debug("Job started successfully. Response:")
-        logger.debug(response)
+        logger.info("Job started successfully. Response:")
+        logger.info(response)
     elif args.workflow == "getjob":
         get_job_run_url(args.application_id)
