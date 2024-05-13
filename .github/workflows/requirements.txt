@@ -4,5 +4,6 @@ boto3
 tenacity
 requests
 venv-pack
-venvception>=0.0.5
+#venvception>=0.0.5
+git+https://github.com/moradology/venvception@ranchodeluxe-patch-1
 jupyter-repo2docker

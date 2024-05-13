@@ -6,7 +6,7 @@ WORKDIR /opt
 RUN yum update -y && yum install -y git
 
 RUN pip3 install \
-  venvception>=0.0.5 \
+  git+https://github.com/moradology/venvception@ranchodeluxe-patch-1 \
   jupyter-repo2docker \
   git+https://github.com/ranchodeluxe/beam-pyspark-runner@patch-2
 
