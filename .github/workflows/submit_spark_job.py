@@ -26,6 +26,17 @@ def block_on_app_state(application_id):
         logger.debug("Application has started and we can submit the job now")
 
 
+@retry(wait=wait_exponential(multiplier=1, max=60), stop=stop_after_delay(300))
+def block_on_job_state(application_id, job_id):
+    resp = client.get_job_run(applicationId=application_id, jobRunId=job_id)
+    if resp.get('jobRun').get('state') != 'RUNNING':
+        logger.debug("retrying...")
+        raise Exception("retrying...")
+    else:
+        time.sleep(10)
+        logger.debug("Job is RUNNING and we can get dashboard URL now")
+
+
 def start_emr_job(application_id, execution_role_arn, entry_point, entry_point_arguments, spark_submit_params, configuration_overrides, tags, execution_timeout, name):
 
     job_driver = {
@@ -63,10 +74,14 @@ def get_job_run_url(application_id):
 
     if len(job_runs['jobRuns']) > 0:
         sorted_job_runs = sorted(job_runs['jobRuns'], key=lambda x: x["createdAt"], reverse=True)
-        logger.debug(f"[ JOB ID ]: {sorted_job_runs[0]['id']}")
+        job_id = sorted_job_runs[0]['id']
+        logger.debug(f"[ JOB ID ]: {job_id}")
+
+        block_on_job_state(application_id, job_id)
+
         job_run = client.get_dashboard_for_job_run(
             applicationId=application_id,
-            jobRunId=sorted_job_runs[0]['id']
+            jobRunId=job_id
         )
         logger.debug(f"[ DASHBOARD URL ]: {job_run}")
     else:
