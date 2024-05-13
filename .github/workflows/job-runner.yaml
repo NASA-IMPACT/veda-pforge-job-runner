@@ -18,6 +18,10 @@ on:
         description: 'space delimited --conf values: https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/jobs-spark.html'
         required: true
         default: '--conf spark.executor.cores=16 --conf spark.executor.memory=60G --conf spark.executor.memoryOverhead=60G --conf spark.driver.memory=10G --conf spark.driver.memoryOverhead=4G --conf spark.shuffle.file.buffer=64k --conf spark.default.parallelism=1280 --conf spark.emr-serverless.executor.disk=200G --conf spark.hadoop.hive.metastore.client.factory.class=com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory --conf spark.emr-serverless.driverEnv.JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64/ --conf spark.executorEnv.JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64/'
+      site_pkg_s3_bucket:
+        description: 'The bucket (set up by TF) to stash dyamically created venv.tar.gz of your recipe requirements.txt for each run'
+        required: true
+        default: 's3://veda-pforge-emr-input-scripts-v4'
       job_name:
         description: 'Name the EMR job'
         required: true
@@ -77,19 +81,37 @@ jobs:
     - name: install zip
       uses: montudor/action-zip@v1
 
+    - name: build recipe requirements and tarball
+      continue-on-error: true
+      run: |
+        # build venv-<hash>.tar.gz from job requirements
+        python .github/workflows/config.py \
+          "${{ github.event.inputs.repo }}" \
+          "${{ github.event.inputs.ref }}" \
+          "${{ github.event.inputs.feedstock_subdir }}"
+
     - name: submit job to emr serverless
       id: executejob
       continue-on-error: true
       run: |
-        # TODO: make submit_spark_job.py or some other config.py checkout, build env and package on s3
-        # before submission
+        # pick up the venv tarball output of config.py above at `.github/venv-<hashdigest>.tar.gz`
+        SITEPKGNAME=$(basename .github/*.tar.gz)
+        S3PATH="${{ github.event.inputs.site_pkg_s3_bucket }}/$SITEPKGNAME"
+
+        echo "FROM: .github/$SITEPKGNAME"
+        echo "TO: $S3PATH"
+        aws s3 cp .github/$SITEPKGNAME  $S3PATH
+
+        # concat our new venv s3 path to spark parameters
+        SPARKPARMS="${{ github.event.inputs.spark_params }} --conf spark.archives=$S3PATH#environment --conf spark.emr-serverless.driverEnv.PYSPARK_DRIVER_PYTHON=./environment/bin/python --conf spark.emr-serverless.driverEnv.PYSPARK_PYTHON=./environment/bin/python --conf spark.executorEnv.PYSPARK_PYTHON=./environment/bin/python"
+
         python .github/workflows/submit_spark_job.py \
           --name=${{ github.event.inputs.job_name }} \
           --application-id="00firgpmjusj5e0l" \
           --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
           --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
           --entry-point-arguments="${{ github.event.inputs.repo }} ${{ github.event.inputs.ref }} ${{ github.event.inputs.feedstock_subdir }}" \
-          --spark-submit-parameters="${{ github.event.inputs.spark_params }}"
+          --spark-submit-parameters="$SPARKPARMS"
       env:
         REPO: ${{ github.event.inputs.repo }}
         REF: ${{ github.event.inputs.ref }}

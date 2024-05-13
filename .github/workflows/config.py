@@ -1,126 +1,91 @@
+import argparse
+import hashlib
+import pathlib
+import subprocess
+import tempfile
 import os
 
-def calc_task_manager_resources(task_manager_process_memory):
-    """
-    illustration of Flink memory model:
-    https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#overview
-
-    has to be sum of configured:
-        Framework Heap Memory (128.000mb default) +
-        Framework Off-Heap Memory (128.000mb default) +
-        Managed Memory (defaults to fraction 0.4 of total flink memory) +
-        Network Memory (defaults to fraction 0.1 of total flink memory but also has to between 64m and 1024m) +
-        Task Heap Memory (calculated below) +
-        Task Off-Heap Memory (calculated below)
-    has to be below configured:
-        Total Flink Memory (calculated below)
-    so this quick math:
-        Total Flink Memory = task_manager_process_memory - 512M
-        Task Heap = (Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128)) * 0.75
-        Task Off-Heap = (Total Flink Memory - ((0.1 * Total Flink Memory) + (0.4 * Total Flink Memory) + 128 + 128)) * 0.25
-
-    :param task_manager_process_memory:
-    :return: dict of configured memory
-    """
-
-    # through testing it seems Total Flink Memory cannot
-    # take up the entire Task Process Memory
-    # so always give it some buffer room of 512M
-    total_flink_memory = task_manager_process_memory - 512
-
-    # as noted above:  Managed Memory (defaults to fraction 0.4 of total flink memory)
-    managed_memory_ratio = 0.4
-    managed_memory = int(managed_memory_ratio * total_flink_memory)
-
-    # as noted above:  Network Memory (defaults to fraction 0.1 of total flink memory)
-    # AND also has to between 64m and 1024m (we really will only run into the ceiling based on our instance sizes)
-    # AND also can't be set directly b/c according to the following error b/c it's applied after all the others:
-    # """
-    # Caused by: org.apache.flink.configuration.IllegalConfigurationException:
-    # If Total Flink, Task Heap and (or) Managed Memory sizes are explicitly configured then the
-    # Network Memory size is the rest of the Total Flink memory after subtracting all
-    # other configured types of memory, but the derived Network Memory is inconsistent with its configuration
-    # """
-    # so constrain by scaling the managed_memory_ratio
-    network_memory = int(0.1 * total_flink_memory)
-    if network_memory > 1024:
-        leftover_network_memory = network_memory - 1024
-        new_managed_memory = managed_memory + leftover_network_memory
-        # adjust the managed_memory_ratio
-        managed_memory_ratio = new_managed_memory / total_flink_memory
-        # adjust managed_memory again with new ratio
-        managed_memory = int(managed_memory_ratio * total_flink_memory)
-        # scale down network memory to just below it's ceiling b/c it's fucking finicky
-        network_memory = 1020
-
-    # as noted above: Framework Heap Memory (128.000mb default)
-    framework_heap_memory = 128
-
-    # as noted above: Framework Off-Heap Memory (128.000mb default) +
-    framework_off_heap_memory = 128
-
-    # should be some simple maths but seems to always run into other constraints
-    remaining_memory = (
-        total_flink_memory
-        - (network_memory + managed_memory + framework_heap_memory + framework_off_heap_memory)
-    )
-
-    # calculate dynamic values
-    return {
-        "total_flink": int(total_flink_memory),
-        "task_heap": int(remaining_memory * 0.75),
-        "task_off_heap": int(remaining_memory * 0.25),
-        "task_memory_managed_fraction": managed_memory_ratio
-    }
+from contextlib import contextmanager
+from venvception import venv
+from pathlib import Path
+from typing import Generator
+from repo2docker import contentproviders
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
-resource_profile_choice = os.environ.get("RESOURCE_PROFILE")
-task_manager_process_memory_map = {
-    "small": 7824,
-    "medium": 9824,
-    "large": 11824,
-    "xlarge": 13824,
-}
-if resource_profile_choice not in list(task_manager_process_memory_map.keys()):
-    raise ValueError(
-        f"Your 'resource_profile' choice '{resource_profile_choice}' was not one "
-        f"of '{list(task_manager_process_memory_map.keys())}'"
-    )
+def hash_requirements(file_path):
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as afile:
+        buf = afile.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
 
-task_manager_resources = calc_task_manager_resources(
-    task_manager_process_memory_map[resource_profile_choice]
-)
-print(f"[ CALCULATED TASK MANAGER RESOURCES ]: {task_manager_resources}")
 
-c.Bake.prune = bool(int(os.environ.get("PRUNE_OPTION")))
-c.Bake.container_image = "apache/beam_python3.10_sdk:2.52.0"
-c.Bake.bakery_class = "pangeo_forge_runner.bakery.flink.FlinkOperatorBakery"
-c.Bake.feedstock_subdir = os.environ.get("FEEDSTOCK_SUBDIR")
+def tar_site_packages(requirements_hash_digest):
+    gh_actions_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    tzpath = os.path.join(gh_actions_folder, f"venv-{requirements_hash_digest}.tar.gz")
+    result = subprocess.run(["venv-pack", "-f", "-o", tzpath],capture_output=True, text=True)
+    if result.returncode == 0:
+        logger.info("Successfully tar'd venv")
+    else:
+        logger.info(f"Failed to tar the venv: stderr={result.stderr.strip()} stdout={result.stdout.strip()}")
 
-c.FlinkOperatorBakery.parallelism = int(os.environ.get("PARALLELISM_OPTION"))
-c.FlinkOperatorBakery.enable_job_archiving = False
-c.FlinkOperatorBakery.flink_version = "1.16"
-c.FlinkOperatorBakery.job_manager_resources = {"memory": "1280m", "cpu": 0.3}
-c.FlinkOperatorBakery.task_manager_resources = {
-    "memory": f"{task_manager_process_memory_map[resource_profile_choice]}m",
-    "cpu": 0.5
-}
-c.FlinkOperatorBakery.flink_configuration = {
-    "taskmanager.numberOfTaskSlots": "1",
-    "taskmanager.memory.flink.size": f"{task_manager_resources['total_flink']}m",
-    "taskmanager.memory.task.heap.size": f"{task_manager_resources['task_heap']}m",
-    "taskmanager.memory.task.off-heap.size": f"{task_manager_resources['task_off_heap']}m",
-    "taskmanager.memory.managed.fraction": f"{task_manager_resources['task_memory_managed_fraction']}"
-}
 
-BUCKET_PREFIX = os.environ.get("OUTPUT_BUCKET")
-c.TargetStorage.fsspec_class = "s3fs.S3FileSystem"
-c.TargetStorage.root_path = f"{BUCKET_PREFIX}/{{job_name}}/output"
-c.TargetStorage.fsspec_args = {
-    "anon": False,
-    "client_kwargs": {"region_name": "us-west-2"},
-}
+@contextmanager
+def checkout(repo: str, ref:str) -> Generator[str, None, None]:
+    with tempfile.TemporaryDirectory() as checkout_dir:
+        cp = contentproviders.Git()
+        spec = cp.detect(repo, ref=ref)
+        if spec is None:
+            raise ValueError(
+                f"Could not fetch {repo}, content provider detection failed"
+            )
 
-c.InputCacheStorage.fsspec_class = c.TargetStorage.fsspec_class
-c.InputCacheStorage.fsspec_args = c.TargetStorage.fsspec_args
-c.InputCacheStorage.root_path = f"{BUCKET_PREFIX}/cache/"
+        logger.info(
+            "Picked {cp} content "
+            "provider.\n".format(cp=cp.__class__.__name__),
+            extra={"status": "fetching"},
+        )
+        for log_line in cp.fetch(
+            spec, checkout_dir, yield_output=True
+        ):
+            logger.info(log_line, extra=dict(status="fetching"))
+
+        yield checkout_dir
+
+
+def main(repo: str, ref: str, feedstock_subdir: str) -> None:
+    with checkout(repo, ref) as checkout_dir:
+        requirements_path = Path(checkout_dir) / feedstock_subdir / "requirements.txt"
+        digest = hash_requirements(str(requirements_path))
+        with venv(requirements_path) as env_path:
+            # in the `venv` context manager, all dynamic recipe requirements should
+            # be installed in an activated virtualenv.
+            # Here, we check that all dependencies are available and
+            # alert if deps in requirements.txt are missing things
+            from importlib.metadata import distributions
+
+            deps_set = {"pangeo-forge-recipes", "fsspec", "apache-beam"}
+            dist_set = {d.metadata["Name"] for d in distributions()}
+            missing_deps = deps_set - dist_set
+            if missing_deps:
+                raise ValueError(
+                    f"The packages {missing_deps} must be listed in your recipe's requirements.txt"
+                )
+            tar_site_packages(digest)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process some strings.")
+    # NOTE: these are positional args
+    parser.add_argument('repo', type=str,
+                        help='The repository URL or path')
+    parser.add_argument('ref', type=str,
+                        help='The reference in the repository, such as a branch or tag')
+    parser.add_argument('feedstock_subdir', type=str,
+                        help='The subdirectory within the repository related to the feedstock')
+    args = parser.parse_args()
+    main(args.repo, args.ref, args.feedstock_subdir)
