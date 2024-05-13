@@ -38,10 +38,12 @@ EMR Serverless + Apache Beam Job Runner
 #### Manual Trigger Option:
 
 3. Head to [GH Action tab](https://github.com/NASA-IMPACT/veda-pforge-job-runner/actions). Select the job you want to run from the left-hand navigation, under "Actions". The current job name is "dispatch job". Since the "dispatch job" workflow has a `workflow_dispatch` trigger, you can select "Run workflow" and use the form to input suitable options.
+
+![](docs/img/xrunworkflow.png)
  
 #### Curl Trigger Option:
 
-3. Construct a JSON snippet that describes the recipe inputs you want to run like the example below (this example actually describes the integration tests). We'll pass this to GH Actions in future examples below via a `curl` POST.
+3. Another way to trigger a job is to construct a JSON snippet that describes the recipe inputs you want to run like the example below (this example actually describes the integration tests). We'll pass this to GH Actions in future examples below via a `curl` POST.
 
     ```bash
     # NOTE that any arguments for your recipe run will be added to the `inputs` hash
@@ -76,13 +78,11 @@ EMR Serverless + Apache Beam Job Runner
 
 ![](docs/img/xfilter_job.png)
 
-7. There are three subjobs to each job: **A)** name the job **B)** kick it off (send it to the k8s cluster) and **C)** monitor the job (which tells you the status of your running work)
+7. There are two subjobs to each job: **A)** name the job **B)** kick it off (send it to EMR serverless cluster) 
 
 ![](docs/img/xwatch_job.png)
 
 8. If you have multiple running jobs then each GH subjob gets a unique name that describes the `<repo>@<ref>` that is running
 
-![](docs/img/xmonitor_job.png)
 
-
-9. Continue to come back to the "monitor" subjob to see if it passes or fails. In the future there will be some mild heuristics in place that should tell you why it fails based on what it sniffs in the logs. For now it sniffs for the correct job status within a time limit of two hours
+9. The last step in the second job titled "echo job metadata" dumps all relevant information including AWS console links to EMR

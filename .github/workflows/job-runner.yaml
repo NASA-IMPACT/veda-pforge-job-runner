@@ -103,24 +103,21 @@ jobs:
         echo "The previous command failed. Running cleanup logic..."
         # force GH action to show failed result
         exit 128
-#
-#    - name: echo JobID, JobName, FlinkDashboard to user
-#      id: report_ids
-#      run: |
-#        # TODO: we also need to report historyserver URL and flink dashboard URL
-#        # but this also requires us to think how we're going to have a thin
-#        # layer of authentication around these services so they aren't totally public
-#        echo '############ RECIPE JOB NAME ################'
-#        echo $RECIPE_JOB_NAME
-#        echo '############ FLINK JOB NAME ################'
-#        echo $JOB_NAME
-#        echo "job_name=$JOB_NAME" >> $GITHUB_OUTPUT
-#        echo '############ JOB ID ################'
-#        echo $JOB_ID
-#        echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
-#        echo '############ FLINK DASHBOARD ################'
-#        echo $FLINK_DASH
-#        echo "flink_dash=$FLINK_DASH" >> $GITHUB_OUTPUT
+
+    - name: echo job metadata
+      id: report_ids
+      run: |
+        echo '############ CW DASHBOARD ################'
+        echo "https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#dashboards/dashboard/veda-pangeo-forge-emr-jobs"
+
+        echo '############ JOB ID and JOB DASHBOARD ################'
+        python .github/workflows/submit_spark_job.py \
+          --name="whatever" \
+          --application-id="00firgpmjusj5e0l" \
+          --execution-role-arn="arn:aws:iam::444055461661:role/veda-data-reader-dev" \
+          --entry-point="s3://veda-pforge-emr-input-scripts-v4/runwrapper.py" \
+          --workflow="getjob"
+
 
 #  monitor-job:
 #    runs-on: ubuntu-latest
