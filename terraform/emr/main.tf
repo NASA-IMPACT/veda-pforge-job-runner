@@ -74,13 +74,11 @@ resource "aws_ecr_repository_policy" "emr_serverless_ecr_policy" {
 }
 
 # Execution role (permissions for actual job runs)
-data "template_file" "execution_role_policy" {
-  template = file(var.execution_role_template)
-
-  vars = {
-    region = var.region
+locals {
+  execution_role_policy = templatefile(var.execution_role_template, {
+    region     = var.region
     account_id = var.account_id
-  }
+  })
 }
 
 resource "aws_iam_policy" "emr_execution_policy" {
