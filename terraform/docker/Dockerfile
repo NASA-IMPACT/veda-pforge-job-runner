@@ -53,10 +53,10 @@ RUN pip3 install \
   venvception>=0.0.5 \
   jupyter-repo2docker \
   pangeo-forge-recipes \
-  git+https://github.com/ranchodeluxe/beam-pyspark-runner@patch-2 \
-  h5py \
   netcdf4 \
-  wheel && \
+  h5netcdf \
+  wheel \
+  git+https://github.com/ranchodeluxe/beam-pyspark-runner@patch-2 && \
   HDF5_MPI="ON" HDF5_DIR=/usr pip3 install --no-binary=h5py h5py
 
 WORKDIR /home/hadoop
