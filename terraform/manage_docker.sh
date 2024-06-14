@@ -5,7 +5,7 @@ IMAGE_NAME="beam-pyspark-emr-serverless"
 # Function to build Docker image
 function build_docker_image() {
     echo "Building Docker image..."
-    docker build -t "$1:latest" ./docker
+    docker build -t "$1:latest" ./docker -f ./docker/Dockerfile
     if [ $? -ne 0 ]; then
         echo "Docker build failed"
         exit 1
